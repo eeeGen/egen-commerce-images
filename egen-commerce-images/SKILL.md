@@ -1,5 +1,5 @@
 ---
-name: ecommerce-product-images
+name: egen-commerce-images
 description: Create ecommerce product image sets with a Chinese consultative workflow for Amazon, MercadoLibre, Takealot, and extensible marketplaces. Use when the user wants product-photo-based ecommerce image generation, listing visuals, marketplace image suites, localized consumer copy, or GPT Image 2 outputs for product hero images, selling-point images, structure/spec images, scene images, A+ style images, or similar ecommerce product visuals.
 ---
 
