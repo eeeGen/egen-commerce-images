@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ecommerce Product Images"
+  short_description: "Chinese consultative ecommerce image workflow"
+  default_prompt: "Use $ecommerce-product-images to create an Amazon product image set from current product photos."
