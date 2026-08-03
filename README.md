@@ -1,23 +1,55 @@
-# egen-commerce-images
+# eGen-commerce-images
 
-English Codex skill for creating ecommerce product image strategies, localized listing copy, and GPT Image 2 prompt sets for marketplace product visuals.
+Codex plugin marketplace for ecommerce image-production skills.
 
-## Install
+This plugin includes:
 
-Use Codex skill installer with the skill directory URL:
+- `egen-commerce-images`: ecommerce product image strategy, localized listing copy, and GPT Image 2 prompt workflows.
+- `seo-naming`: SEO-friendly ecommerce product image filename organization.
 
-```bash
-$skill-installer install https://github.com/eeeGen/egen-commerce-images/tree/main/egen-commerce-images
+## Install From Terminal
+
+Add this GitHub repository as a Codex plugin marketplace:
+
+```powershell
+codex plugin marketplace add https://github.com/eeeGen/egen-commerce-images
 ```
 
-The installer will copy the skill into:
+Install the plugin:
+
+```powershell
+codex plugin add egen-commerce-images@egen-commerce-images-marketplace
+```
+
+After installation, start a new Codex turn/session so the bundled skills are loaded.
+
+## Update From Terminal
+
+Refresh the marketplace snapshot:
+
+```powershell
+codex plugin marketplace upgrade egen-commerce-images-marketplace
+```
+
+Then reinstall or add the plugin again if Codex asks you to refresh the installed package:
+
+```powershell
+codex plugin add egen-commerce-images@egen-commerce-images-marketplace
+```
+
+## Repository Layout
 
 ```text
-$CODEX_HOME/skills/egen-commerce-images
+.agents/plugins/marketplace.json
+plugins/egen-commerce-images/.codex-plugin/plugin.json
+plugins/egen-commerce-images/skills/egen-commerce-images/SKILL.md
+plugins/egen-commerce-images/skills/seo-naming/SKILL.md
 ```
 
-## Contents
+## Direct Skill Install Fallback
 
-- `egen-commerce-images/SKILL.md`
-- `egen-commerce-images/agents/openai.yaml`
-- `egen-commerce-images/references/style-prompts/*.md`
+If you only want the main skill without the plugin wrapper, use Codex in-session skill installer:
+
+```text
+$skill-installer install https://github.com/eeeGen/egen-commerce-images/tree/main/plugins/egen-commerce-images/skills/egen-commerce-images
+```

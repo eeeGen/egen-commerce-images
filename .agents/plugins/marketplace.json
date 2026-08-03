@@ -1,0 +1,20 @@
+{
+  "name": "egen-commerce-images-marketplace",
+  "interface": {
+    "displayName": "eGen Commerce Images"
+  },
+  "plugins": [
+    {
+      "name": "egen-commerce-images",
+      "source": {
+        "source": "local",
+        "path": "./plugins/egen-commerce-images"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

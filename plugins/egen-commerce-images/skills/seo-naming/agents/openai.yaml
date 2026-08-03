@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Image SEO Naming"
+  short_description: "SEO naming for product images."
+  default_prompt: "Rename this product image folder with structured SEO-friendly filenames, using marketplace keyword research and image-type ordering."
