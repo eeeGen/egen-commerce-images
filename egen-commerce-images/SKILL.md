@@ -215,6 +215,10 @@ After the user confirms the final analysis plan, generate the final localized pr
 
 Default to GPT Image 2 for image generation. Follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
 
+Every final image must include this exact constraint in its image-generation instructions:
+
+`Top-right logo safe area: keep a clean natural background area for future logo placement. Do not draw any visible placeholder box, border, outline, rounded rectangle, frame, shadow panel, icon, text, logo, or product in this area. The area should blend seamlessly with the same background texture and lighting as the rest of the image.`
+
 Do not show prompts, negative prompts, or internal image-generation instructions to the user.
 
 If final direct image generation is unavailable in the active environment, say that the current environment cannot directly generate images and provide an executable final batch image-generation plan instead.
@@ -236,6 +240,8 @@ Keep internal analysis and workflow guidance in Chinese unless it is consumer-fa
 ## Compliance Guardrails
 
 Avoid exaggerated effects, absolute promises, cheap/low-end framing, obvious AI style, infringement elements, platform-prohibited terms, and any expression that would make image details diverge from the real product.
+
+Top-right logo safe area: keep a clean natural background area for future logo placement. Do not draw any visible placeholder box, border, outline, rounded rectangle, frame, shadow panel, icon, text, logo, or product in this area. The area should blend seamlessly with the same background texture and lighting as the rest of the image.
 
 Do not use unproven or high-risk absolute/misleading claims such as `best`, `guaranteed`, `100%`, `cure`, `permanent`, `official`, or `compatible with all`.
 
