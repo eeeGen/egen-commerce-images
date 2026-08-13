@@ -1,5 +1,24 @@
 # Version Update
 
+## v0.4.1 - 2026-08-13
+
+### Summary
+
+Fixed the local browser form service instructions so Codex resolves the bundled service script from the skill folder to the plugin root correctly.
+
+### Changes
+
+- Clarified that `product_form_server.py` is stored in the plugin root `scripts/` directory, not under the skill folder.
+- Updated Step 2 startup instructions to use `..\..\scripts\product_form_server.py` when resolving relative to `SKILL.md`.
+- Updated Step 3 JSON-reading wording to reference the corrected script path.
+- Updated the plugin manifest version to `0.4.1`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `SKILL.md`
+- `VERSION_UPDATE.md`
+
 ## v0.4.0 - 2026-08-13
 
 ### Summary
