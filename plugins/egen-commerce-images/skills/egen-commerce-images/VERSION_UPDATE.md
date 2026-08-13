@@ -1,5 +1,28 @@
 # Version Update
 
+## v0.4.0 - 2026-08-13
+
+### Summary
+
+Added a local browser form workflow that lets users fill dropdowns, checkboxes, and text fields in the Codex in-app Browser, then saves task data to a local JSON file that Codex reads directly.
+
+### Changes
+
+- Added `scripts/product_form_server.py` to serve the product task form on `127.0.0.1` and save JSON to `%TEMP%\egen-commerce-images\latest-product-task.json`.
+- Added `assets/product-task-form.html` with product information fields, task option dropdowns, image type checkboxes, and save status feedback.
+- Updated Step 2 to use the local browser form as the primary workflow after product image upload.
+- Updated Step 3 to read the saved JSON directly instead of asking users to paste JSON into chat.
+- Kept the Markdown two-table workflow as a fallback when the local service or browser is unavailable.
+- Updated the plugin manifest version to `0.4.0`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `scripts/product_form_server.py`
+- `SKILL.md`
+- `VERSION_UPDATE.md`
+
 ## v0.3.0 - 2026-08-13
 
 ### Summary

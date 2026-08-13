@@ -17,9 +17,11 @@ After entering that line, users are required to either upload actual photos or r
 
 Keep Step 1 separate from all other information collection. Do not ask for country, platform, style, product details, image types, ratio, quantity, or additional requirements in Step 1.
 
-After Step 1 is complete, collect the original Steps 2-9 in one message using two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
+After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. Start `scripts/product_form_server.py`, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and then read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by the server. Do not ask the user to copy JSON back into chat.
 
-Do not output the product analysis plan until both tables are filled sufficiently and required task options have passed validation.
+If the local form service or browser flow is unavailable, fall back to the two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
+
+Do not output the product analysis plan until the saved form JSON or fallback tables are filled sufficiently and required task options have passed validation.
 
 ## Image Source Boundary
 
@@ -85,13 +87,26 @@ Output the required opening line, then only ask:
 
 Do not use `knowledge` images to satisfy this step.
 
-### Step 2: Fill Product Information and Task Option Tables
+### Step 2: Fill Product Task Form
 
-After the user uploads at least one current-chat product image or provides a path to actual/reference product images, output the following two fixed Markdown tables in one message. Tell the user they can copy the tables and modify only the `填写` column.
+After the user uploads at least one current-chat product image or provides a path to actual/reference product images, use the bundled local form workflow by default:
 
-Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
+1. Start the local service from the plugin root:
 
-#### 产品信息表
+```powershell
+python .\scripts\product_form_server.py
+```
+
+2. Read the printed `FORM_URL`, `LATEST_URL`, and `JSON_PATH`.
+3. Open `FORM_URL` in the Codex in-app Browser when available.
+4. Ask the user to fill the browser form and click `保存表单`.
+5. After the user says the form is saved, read the JSON file at `JSON_PATH`. The default path is `%TEMP%\egen-commerce-images\latest-product-task.json`.
+
+The browser form provides dropdowns for target country/language, platform, knowledge style, ratio, quantity, and extra requirement mode. It provides checkboxes for image type selection, including `全选`. Runtime form results must stay outside the repository; do not commit generated JSON files.
+
+If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
+
+#### Fallback 产品信息表
 
 | 字段 | 填写 |
 | --- | --- |
@@ -109,7 +124,7 @@ Use the current-chat product image to provide a few candidate product informatio
 | 其他补充 | 待填写 |
 | 产品信息文档路径（如有） | 无 |
 
-#### 任务选项表
+#### Fallback 任务选项表
 
 | 项目 | 编号选项 / 固定枚举 | 填写 |
 | --- | --- | --- |
@@ -123,13 +138,51 @@ Use the current-chat product image to provide a few candidate product informatio
 
 Do not proceed until the required task options are filled: target country/language, platform, knowledge style, image types, ratio, and quantity per type. Defaults are English and Spanish, but accept additional languages when the user supplies them.
 
-### Step 3: Parse and Validate Tables
+### Step 3: Parse and Validate Form Data
 
-Parse the user's filled tables and normalize numbered options or fixed enum values. Image types support multiple selections such as `2,3,5`, `Hero,Selling,Specs`, or Chinese image type names.
+For the local browser form workflow, read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by `scripts/product_form_server.py`. Do not ask the user to paste JSON into chat.
+
+Expected saved JSON shape:
+
+```json
+{
+  "productInfo": {
+    "productName": "",
+    "brand": "",
+    "category": "",
+    "material": "",
+    "sizeSpec": "",
+    "colorVariant": "",
+    "packageList": "",
+    "targetUsers": "",
+    "useScenarios": "",
+    "sellingPoints": "",
+    "avoidExpressions": "",
+    "additionalNotes": "",
+    "productInfoPath": ""
+  },
+  "taskOptions": {
+    "countryLanguage": "US_EN",
+    "platform": "Amazon",
+    "knowledgeStyle": "style1",
+    "imageTypes": ["Hero"],
+    "ratio": "1:1",
+    "quantityPerType": 1,
+    "extraRequirementMode": "none",
+    "extraRequirements": ""
+  },
+  "meta": {
+    "schemaVersion": 1,
+    "savedAt": "ISO-8601 timestamp"
+  }
+}
+```
+
+For fallback Markdown tables, parse the user's filled tables and normalize numbered options or fixed enum values. Image types support multiple selections such as `2,3,5`, `Hero,Selling,Specs`, or Chinese image type names.
 
 `全选` means the eleven standard image types: 主图 Hero, 痛点/卖点图 Selling, 功能/结构图 Feature, 尺寸规格图 Specs, 场景结果图 Lifestyle, 差异化价值图 Value, 对比优势图 Compare, A+ 收束图 Closing, 核心价值场景图 A CoreA, 核心价值场景图 B CoreB, 产品使用说明 Guide.
 
-If the user selects `其他` for country/language, platform, style, image type, or additional requirements but does not provide the custom value, ask one focused follow-up question for that item only. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
+If the saved JSON or fallback tables use `OTHER` / `其他` for country/language, platform, style, image type, or additional requirements but do not provide the custom value, ask one focused follow-up question for that item only. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
 
 Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, accessories, or other product facts. Product information fields may remain `待填写`; clearly separate known facts from assumptions or suggested wording.
 
@@ -137,7 +190,7 @@ State that final generation must follow the ratios currently supported by the bu
 
 ### Step 10: Analysis Plan and Confirmation
 
-Only after Step 1 is complete and the two Step 2 tables have passed Step 3 validation, output a Chinese product analysis plan and wait for confirmation. Include:
+Only after Step 1 is complete and the Step 2 saved form JSON or fallback tables have passed Step 3 validation, output a Chinese product analysis plan and wait for confirmation. Include:
 
 - 详尽产品描述
 - 目标客群
