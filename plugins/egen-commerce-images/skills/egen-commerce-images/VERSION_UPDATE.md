@@ -1,5 +1,24 @@
 # Version Update
 
+## v0.4.3 - 2026-08-13
+
+### Summary
+
+Fixed the local browser form startup instructions so Codex starts the form service as a background process instead of using a foreground command that can time out and kill the server before the browser opens.
+
+### Changes
+
+- Replaced the foreground `python ..\..\scripts\product_form_server.py` startup example with a `Start-Process` background startup template.
+- Added guidance to prefer the Codex bundled Python executable when available.
+- Added a failure rule: exit code `124`, missing `FORM_URL`, or a dead printed `PID` means startup failed and must be retried with background startup before opening the browser.
+- Updated the plugin manifest version to `0.4.3`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `SKILL.md`
+- `VERSION_UPDATE.md`
+
 ## v0.4.2 - 2026-08-13
 
 ### Summary

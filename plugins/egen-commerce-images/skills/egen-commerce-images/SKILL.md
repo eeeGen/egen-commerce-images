@@ -17,7 +17,7 @@ After entering that line, users are required to either upload actual photos or r
 
 Keep Step 1 separate from all other information collection. Do not ask for country, platform, style, product details, image types, ratio, quantity, or additional requirements in Step 1.
 
-After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and then read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by the server. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
+After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script as a background process, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and then read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by the server. Never start the service with a foreground shell command that waits for `product_form_server.py` to exit. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
 
 If the local form service or browser flow is unavailable, fall back to the two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
 
@@ -93,10 +93,16 @@ After the user uploads at least one current-chat product image or provides a pat
 
 1. Resolve the plugin root as two directories above this `SKILL.md` file. From the skill folder, the service script path is `..\..\scripts\product_form_server.py`; from the plugin root, it is `.\scripts\product_form_server.py`.
 
-2. Start the local service with the resolved script path. Example from the skill folder:
+2. Start the local service as a background process with the resolved script path. Prefer the Codex bundled Python executable from `codex_app.load_workspace_dependencies` when available; otherwise use a verified local `python` or `py` command. Do not run `python ..\..\scripts\product_form_server.py` as a foreground command.
 
 ```powershell
-python ..\..\scripts\product_form_server.py
+$script = Resolve-Path '..\..\scripts\product_form_server.py'
+$out = Join-Path $env:TEMP 'egen-commerce-images-form.out.log'
+$err = Join-Path $env:TEMP 'egen-commerce-images-form.err.log'
+Start-Process -WindowStyle Hidden -FilePath python -ArgumentList @($script) -RedirectStandardOutput $out -RedirectStandardError $err -PassThru
+Start-Sleep -Seconds 1
+Get-Content -LiteralPath $out -Raw -ErrorAction SilentlyContinue
+Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
 ```
 
 3. Read the printed `FORM_URL`, `LATEST_URL`, `JSON_PATH`, and `PID`.
@@ -106,7 +112,7 @@ python ..\..\scripts\product_form_server.py
 
 The browser form provides dropdowns for target country/language, platform, knowledge style, ratio, quantity, and extra requirement mode. It provides checkboxes for image type selection, including `全选`. Runtime form results must stay outside the repository; do not commit generated JSON files.
 
-If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
+If the startup command returns exit code `124`, if the log does not contain `FORM_URL`, or if the printed `PID` is no longer running, treat the startup as failed and retry with a background `Start-Process` command before opening the browser. If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
 #### Fallback 产品信息表
 
