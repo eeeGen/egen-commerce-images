@@ -1,4 +1,4 @@
-# style6 Universal Product Generation Index and GPT Image 2 Prompts
+# style6 Universal Product Generation Index and Prompts
 
 Positioning: blue-and-gold high-density scene-evidence style. This file applies to any general product and is not bound to the original category of the reference images. During generation, inherit only the visual style, composition, information hierarchy, UI components, scene expression, and selling-point logic.
 
@@ -50,7 +50,7 @@ Positioning: blue-and-gold high-density scene-evidence style. This file applies 
 - Product placement form: the product occupies 35%-50% of the foreground; scenes and preview frames must not obstruct the main product.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Pain Point / Selling Point Image"; target filename token: Selling. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -86,7 +86,7 @@ Selling-point logic: first state the general use benefit, then use verified sell
 - Product placement form: the product occupies 25%-45%, sits close to the camera, and presents its key functional face toward the viewer.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Core Value Scene Image A"; target filename token: CoreA. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -122,7 +122,7 @@ Selling-point logic: show the most typical and important reason to buy, with the
 - Product placement form: the product occupies 30%-45% and connects visually to protection, status, or result symbols without being obstructed.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Core Value Scene Image B"; target filename token: CoreB. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -158,7 +158,7 @@ Selling-point logic: create clear separation from CoreA in scenario and user gro
 - Product placement form: the product or key section occupies 45%-60%; callouts must attach to real visible components.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Feature / Structure Image"; target filename token: Feature. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -194,7 +194,7 @@ Selling-point logic: support selling points with the product's real structure, v
 - Product placement form: the main product must be unobstructed; verified accessories should be grouped clearly; dimension points must align to real product boundaries.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Size / Specification Image"; target filename token: Specs. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -230,7 +230,7 @@ Selling-point logic: reduce pre-purchase size misunderstanding by showing only u
 - Product placement form: product and verified accessories are shown completely, occupying 45%-60%; do not invent accessories.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Differentiated Value Image"; target filename token: Value. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -266,7 +266,7 @@ Selling-point logic: convert differentiated value into readable combined benefit
 - Product placement form: the user product must be complete and clear; the ordinary product may be grayed out or simplified, but must not imitate a competitor product.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Comparison Advantage Image"; target filename token: Compare. Use the blue-and-gold high-density scene-evidence visual DNA: realistic scene photography combined with professional infographics; deep navy, bright blue, and white/light gray as the main colors; limited yellow/gold accents for key points. The image should communicate complete configuration, clear proof, visible usage results, reasons to choose, and a trustworthy purchase decision for any product category.
@@ -302,7 +302,7 @@ Selling-point logic: compare only provable differences. The ordinary product mus
 - Product placement form: the product occupies 25%-45%, with a clear relationship to real use action or spatial context.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Lifestyle / Result Image"; target filename token: Lifestyle. Use the lifestyle branch of the blue-and-gold high-density scene-evidence visual DNA: realistic warm lifestyle scene, deep-blue text, fine gold line decoration, limited circular icon selling points, and natural product highlights. The image should communicate everyday use, refined display, gifting, comfort, coordination, and lifestyle results for any product category.

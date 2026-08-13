@@ -1,6 +1,6 @@
 <!-- English adaptation for ecommerce-product-images. Preserve variables and filename tokens. -->
 
-# style_hero Universal Product Generation Index and GPT Image 2 Prompt
+# style_hero Universal Product Generation Index and Prompt
 
 Scope: Hero images for any general product presented as a bundle, multi-pack, or complete configuration. Do not bind the output to the original product category in any reference image. Reuse only the high-information-density layout logic: quantity or set headline, bundle display, accessory list, functional icons, and bottom multi-scene card strip.
 
@@ -62,7 +62,7 @@ Scope: Hero images for any general product presented as a bundle, multi-pack, or
 - Product scale rule: the 40%-55% range is the general index range for reusable Hero layouts. If a final prompt below specifies a different product share, that final prompt-specific range overrides the index for that prompt only.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### GPT Image 2 Industrial Production Prompt
+### Industrial Production Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Main image". Target filename token: Hero. Apply a high-information-density comprehensive Hero visual system: white or light-gray technology background, deep blue, bright blue, and black as the main palette, with small gold or yellow accents only for key emphasis. The result should function as a single-screen overview for any product category.

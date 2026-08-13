@@ -1,6 +1,6 @@
 ---
 name: egen-commerce-images
-description: Create ecommerce product image sets with a Chinese consultative workflow for Amazon, MercadoLibre, Takealot, and extensible marketplaces. Use when the user wants product-photo-based ecommerce image generation, listing visuals, marketplace image suites, localized consumer copy, or GPT Image 2 outputs for product hero images, selling-point images, structure/spec images, scene images, A+ style images, or similar ecommerce product visuals.
+description: Create ecommerce product image sets with a Chinese consultative workflow for Amazon, MercadoLibre, Takealot, and extensible marketplaces. Use when the user wants product-photo-based ecommerce image generation, listing visuals, marketplace image suites, localized consumer copy, or built-in image_gen.imagegen outputs for product hero images, selling-point images, structure/spec images, scene images, A+ style images, or similar ecommerce product visuals.
 ---
 
 # Ecommerce Product Images
@@ -15,7 +15,11 @@ Start every new product task, and every return to Step 1, with exactly:
 
 After entering that line, users are required to either upload actual photos or reference images of the product in the current chat, or provide the path where the actual/reference images are stored. Explain that the images are needed to calibrate this product's shape, proportions, color, material, structure, ports, accessories, and details so generation does not drift from the real item. Do not ask any other question in Step 1.
 
-Keep the interaction one step at a time. Do not request multiple steps in one message. Do not output the product analysis plan until Steps 1-9 are complete.
+Keep Step 1 separate from all other information collection. Do not ask for country, platform, style, product details, image types, ratio, quantity, or additional requirements in Step 1.
+
+After Step 1 is complete, collect the original Steps 2-9 in one message using two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
+
+Do not output the product analysis plan until both tables are filled sufficiently and required task options have passed validation.
 
 ## Image Source Boundary
 
@@ -81,122 +85,59 @@ Output the required opening line, then only ask:
 
 Do not use `knowledge` images to satisfy this step.
 
-### Step 2: Choose Country and Language
+### Step 2: Fill Product Information and Task Option Tables
 
-After the user uploads at least one current-chat product image, ask the user to choose one target country/language:
+After the user uploads at least one current-chat product image or provides a path to actual/reference product images, output the following two fixed Markdown tables in one message. Tell the user they can copy the tables and modify only the `填写` column.
 
-- 1. 美国 / 英语
-- 2. 墨西哥 / 西班牙语
-- 3. 智利 / 西班牙语
-- 4. 哥伦比亚 / 西班牙语
-- 5. 南非 / 英语
-- 6. 其他国家/语言：请填写
+Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
-Defaults are English and Spanish, but accept additional languages when the user supplies them. Just answer the serial number. 
+#### 产品信息表
 
-### Step 3: Collect Product Basics
+| 字段 | 填写 |
+| --- | --- |
+| 产品名称 | 待填写 |
+| 品牌 | 待填写 |
+| 商品类目 | 待填写 |
+| 材质/成分 | 待填写 |
+| 尺寸/规格 | 待填写 |
+| 颜色/款式 | 待填写 |
+| 包装清单 | 待填写 |
+| 适用人群 | 待填写 |
+| 使用场景 | 待填写 |
+| 核心卖点 | 待填写 |
+| 需要避免的表达 | 待填写 |
+| 其他补充 | 待填写 |
+| 产品信息文档路径（如有） | 无 |
 
-Ask the user to fill this copy-friendly template. Use the current-chat product image to provide a few candidate values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）。
+#### 任务选项表
 
-```text
-产品名称：
-品牌：
-商品类目：
-材质/成分：
-尺寸/规格：
-颜色/款式：
-包装清单：
-适用人群：
-使用场景：
-核心卖点：
-需要避免的表达：
-其他补充：
-```
+| 项目 | 编号选项 / 固定枚举 | 填写 |
+| --- | --- | --- |
+| 目标国家/语言 | 1 美国/英语；2 墨西哥/西班牙语；3 智利/西班牙语；4 哥伦比亚/西班牙语；5 南非/英语；6 其他：请填写 | 待填写 |
+| 目标平台 | 1 Amazon；2 MercadoLibre；3 Takealot；4 其他：请填写 | 待填写 |
+| knowledge style | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero；8 其他：请填写 | 待填写 |
+| 图片类型 | 1 全选；2 Hero；3 Selling；4 Feature；5 Specs；6 Lifestyle；7 Value；8 Compare；9 Closing；10 CoreA；11 CoreB；12 Guide；13 其他：请填写 | 待填写 |
+| 图片比例 | 1 1:1；2 4:5；3 3:4；4 16:9；5 9:16 | 待填写 |
+| 每类数量 | 1；2；4；6；10 | 待填写 |
+| 额外生图要求 | 1 无额外要求；2 填写额外要求 | 1 |
 
-Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, or accessories.
+Do not proceed until the required task options are filled: target country/language, platform, knowledge style, image types, ratio, and quantity per type. Defaults are English and Spanish, but accept additional languages when the user supplies them.
 
-### Step 4: Choose Platform
+### Step 3: Parse and Validate Tables
 
-Ask the user to choose one target platform:
+Parse the user's filled tables and normalize numbered options or fixed enum values. Image types support multiple selections such as `2,3,5`, `Hero,Selling,Specs`, or Chinese image type names.
 
-- 1. Amazon
-- 2. MercadoLibre
-- 3. Takealot
-- 4. 其他平台：请填写
+`全选` means the eleven standard image types: 主图 Hero, 痛点/卖点图 Selling, 功能/结构图 Feature, 尺寸规格图 Specs, 场景结果图 Lifestyle, 差异化价值图 Value, 对比优势图 Compare, A+ 收束图 Closing, 核心价值场景图 A CoreA, 核心价值场景图 B CoreB, 产品使用说明 Guide.
 
-If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.  Just answer the serial number.
+If the user selects `其他` for country/language, platform, style, image type, or additional requirements but does not provide the custom value, ask one focused follow-up question for that item only. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
 
-### Step 5: Choose Knowledge Style
+Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, accessories, or other product facts. Product information fields may remain `待填写`; clearly separate known facts from assumptions or suggested wording.
 
-List the built-in style prompt documents and ask the user to choose one:
-
-- 1. style1
-- 2. style2
-- 3. style3
-- 4. style4
-- 5. style5
-- 6. style6
-- 7. stylehero
-- 其他 style：请填写
-
-Do not proceed until the user chooses a style. The selected style prompt document controls the ecommerce visual reference set and prompt logic for final image generation. Just answer the serial number.
-
-### Step 6: Choose Image Types
-
-Ask the user to choose image types:
-
-- 1. 全选
-- 2. 主图 Hero
-- 3. 痛点/卖点图 Selling
-- 4. 功能/结构图 Feature
-- 5. 尺寸规格图 Specs
-- 6. 场景结果图 Lifestyle
-- 7. 差异化价值图 Value
-- 8. 对比优势图 Compare
-- 9. A+ 收束图 Closing
-- 10. 核心价值场景图 A CoreA
-- 11. 核心价值场景图 B CoreB
-- 12. 产品使用说明 Guide
-- 13. 其他图片类型：请补充
-
-`全选` means the eleven standard image types: 主图 Hero, 痛点/卖点图 Selling, 功能/结构图 Feature, 尺寸规格图 Specs, 场景结果图 Lifestyle, 差异化价值图 Value, 对比优势图 Compare, A+ 收束图 Closing, 核心价值场景图 A CoreA, 核心价值场景图 B CoreB, 产品使用说明 Guide. Just answer the serial number.
-
-### Step 7: Choose Image Ratio
-
-Ask the user to choose one ratio:
-
-- 1. 1:1
-- 2. 4:5
-- 3. 3:4
-- 4. 16:9
-- 5. 9:16
-
-State that final generation must follow the currently available GPT Image 2 ratios. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. Just answer the serial number.
-
-### Step 8: Choose Quantity Per Type
-
-Ask how many images to generate for each selected image type:
-
-- 1
-- 2
-- 4
-- 6
-- 10
-
-Calculate `selected image type count x quantity per type`. If the result may touch or exceed the active GPT Image 2 single-request limit, ask the user to choose fewer images or generate in batches.
-
-### Step 9: Additional Requirements
-
-Ask the user to choose one:
-
-- 1. 无额外要求
-- 2. 填写额外生图要求
-
-If the user chooses extra requirements, ask for that requirement only.
+State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. Calculate `selected image type count x quantity per type`. If the result may touch or exceed the active `image_gen.imagegen` single-request limit, ask the user to choose fewer images or generate in batches.
 
 ### Step 10: Analysis Plan and Confirmation
 
-Only after Steps 1-9 are complete, output a Chinese product analysis plan and wait for confirmation. Include:
+Only after Step 1 is complete and the two Step 2 tables have passed Step 3 validation, output a Chinese product analysis plan and wait for confirmation. Include:
 
 - 详尽产品描述
 - 目标客群
@@ -213,7 +154,7 @@ If the user requests changes, output a revised plan and continue waiting for con
 
 After the user confirms the final analysis plan, generate the final localized product description and the confirmed final ecommerce image set of `selected image type count x quantity per type` images. Adapt each image to its selected image type while following the confirmed visual style, platform, country/language, product facts, ratio, quantity, and additional requirements.
 
-Default to GPT Image 2 for image generation. Follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
+Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. Follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
 
 Every final image must include this exact constraint in its image-generation instructions:
 
@@ -221,7 +162,7 @@ Every final image must include this exact constraint in its image-generation ins
 
 Do not show prompts, negative prompts, or internal image-generation instructions to the user.
 
-If final direct image generation is unavailable in the active environment, say that the current environment cannot directly generate images and provide an executable final batch image-generation plan instead.
+If the built-in `image_gen.imagegen` tool is unavailable in the active environment, say that the current environment cannot directly generate images and provide an executable final batch image-generation plan instead.
 
 ## Final Product Description
 

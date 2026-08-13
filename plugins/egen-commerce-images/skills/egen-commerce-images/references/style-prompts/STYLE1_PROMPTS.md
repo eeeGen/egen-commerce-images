@@ -1,4 +1,4 @@
-# style1 Universal Product Generation Index and GPT Image 2 Prompts
+# style1 Universal Product Generation Index and Prompts
 
 Positioning: blue and white technical specification style. This file applies to any generic product and is not tied to the original category of any reference image. During generation, inherit only the visual style, composition, information hierarchy, UI components, scene treatment, and selling-point logic. Do not inherit product facts from reference images.
 
@@ -50,7 +50,7 @@ Positioning: blue and white technical specification style. This file applies to 
 - Product placement form: product occupies 45%-65% of the image. Choose flat lay, standing display, floating display, or three-quarter angle based on product form.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Main image. Target filename token: Hero. Use the visual DNA of a blue and white technical specification style: bright blue and white ecommerce design, light gray background, blue visual anchors, rounded cards, structural labels, and specification visualization.
@@ -84,7 +84,7 @@ Use light blue gradients, soft shadows, blue-white rim lighting, localized highl
 - Product placement form: keep the product unobstructed, with rulers aligned to real product boundaries.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Size and specification image. Target filename token: Specs. Use the blue and white technical specification style.
@@ -116,7 +116,7 @@ Use only numbers, sizes, materials, accessories, and quantities from {specs} or 
 - Product placement form: show only internal or external structures confirmed by the user.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Function or structure image. Target filename token: Feature. Use the blue and white technical specification style.
@@ -148,7 +148,7 @@ Highlight only visible or confirmed structures. Do not render fake cross-section
 - Product placement form: enlarge the key area to 45%-60% of the image without obstruction.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Function or structure image. Target filename token: Feature. Use the blue and white technical specification style.
@@ -180,7 +180,7 @@ Highlight only the confirmed detail being explained. Do not visualize fake funct
 - Product placement form: bring a key functional surface, port, button, texture, or structural node close to the camera.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Function or structure image. Target filename token: Feature. Use a white or light gray blue and white technical infographic style.
@@ -212,7 +212,7 @@ Highlight only the confirmed detail being explained. Do not create fake macro te
 - Product placement form: display the product stably in the lower-middle area, occupying 35%-50% of the image.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Pain-point or selling-point image. Target filename token: Selling. Use the blue and white technical specification style.
@@ -244,7 +244,7 @@ Effects may imply clarity, organization, stability, or reassurance, but must not
 - Product placement form: use the product as the visual center, adapted to any product form.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Pain-point or selling-point image. Target filename token: Selling. Use the blue and white technical specification style.
@@ -276,7 +276,7 @@ Effects must support product recognition and verified benefit communication, wit
 - Product placement form: product occupies 25%-40% of the image and supports the data panel.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Differentiated value image. Target filename token: Value. Use the blue and white technical specification style.
@@ -308,7 +308,7 @@ Effects should make the value panel readable and modern, without implying unveri
 - Product placement form: product occupies 30%-45% of the image, with a clear relationship to the use action or space.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Scenario result image. Target filename token: Lifestyle. Use the blue and white technical specification style.
@@ -340,7 +340,7 @@ Keep the product visually true and recognizable in the scene. Do not exaggerate 
 - Product placement form: keep the product clear in the foreground, with environmental elements never covering it.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Pain-point or selling-point image. Target filename token: Selling. Use the blue and white technical specification style.
@@ -372,7 +372,7 @@ Effects may imply organization and care, but must not imply unverified waterproo
 - Product placement form: connect the product to fit or compatibility objects with blue connector lines.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Function or structure image. Target filename token: Feature. Use the blue and white technical specification style.
@@ -404,7 +404,7 @@ Make the connector logic clear without implying unsupported compatibility or off
 - Product placement form: repeat the product in the main card or corners while preserving real proportions.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a generic product. Image type: Scenario result image. Target filename token: Lifestyle. Use the blue and white technical specification style.

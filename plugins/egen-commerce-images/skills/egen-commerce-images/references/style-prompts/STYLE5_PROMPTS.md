@@ -1,6 +1,6 @@
 <!-- English adaptation generated for ecommerce-product-images. Preserve variables and filename tokens. -->
 
-# style5 Universal Product Generation Index and GPT Image 2 Prompts
+# style5 Universal Product Generation Index and Prompts
 
 Positioning: fresh lifestyle imagery with a blue-white product technology style. This file applies to any general product and is not bound to the original category of any reference image. During generation, inherit only the visual style, composition, information hierarchy, UI components, scene expression, and selling-point logic.
 
@@ -51,7 +51,7 @@ Positioning: fresh lifestyle imagery with a blue-white product technology style.
 - Product placement form: make key controls or operating surfaces clear.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "function or structure image" and the target filename token is Feature. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -87,7 +87,7 @@ Selling-point logic: support selling points through the product's real structure
 - Product placement form: the product occupies 20%-35% of the image, and the usage action feels natural and credible.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "core value scene image A" and the target filename token is CoreA. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -123,7 +123,7 @@ Selling-point logic: show the most typical and important purchase reason, with t
 - Product placement form: make the product and accessories clear, with realistic proportions.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "core value scene image B" and the target filename token is CoreB. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -159,7 +159,7 @@ Selling-point logic: separate it from CoreA through a different scene and user p
 - Product placement form: show the product in a natural use position.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "lifestyle result image" and the target filename token is Lifestyle. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -195,7 +195,7 @@ Selling-point logic: use realistic generalized scenes to show the usage result b
 - Product placement form: show the user's product and verified accessories completely; render the ordinary product as generic and grayed out.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "comparison advantage image" and the target filename token is Compare. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -231,7 +231,7 @@ Selling-point logic: compare only provable differences, and use an unbranded gen
 - Product placement form: show only verified accessories and components.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "function or structure image" and the target filename token is Feature. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -267,7 +267,7 @@ Selling-point logic: support selling points through the product's real structure
 - Product placement form: keep the product unobstructed, with accessories arranged in a flat lay.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "size and specification image" and the target filename token is Specs. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -303,7 +303,7 @@ Selling-point logic: reduce pre-purchase size misunderstanding by showing only u
 - Product placement form: product occupies 40%-55% of the image, shown from a three-quarter angle or front view.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "hero image" and the target filename token is Hero. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.
@@ -339,7 +339,7 @@ Selling-point logic: establish product recognition, core value, and purchase rea
 - Product placement form: generalize the ordinary product and do not copy any competitor product.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. The image type is "comparison advantage image" and the target filename token is Compare. Apply the visual DNA of "fresh lifestyle plus blue-white product technology style": fresh white, gray, and blue lifestyle imagery with product highlights, selling-point icons, specification bars, accessory displays, and people or spatial scene integration. The image should express everyday use, portability, comfort, ease of use, accessories, and reasons to choose the product in a category-neutral way.

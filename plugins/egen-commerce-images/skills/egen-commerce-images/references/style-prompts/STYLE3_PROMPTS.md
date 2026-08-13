@@ -1,4 +1,4 @@
-# style3 Universal Product Generation Index and GPT Image 2 Prompts
+# style3 Universal Product Generation Index and Prompts
 
 Positioning: premium black-and-white performance technology style. This file applies to any general product and is not bound to the original category of any reference image. During generation, inherit only the visual style, composition, information hierarchy, UI components, scene logic, and selling-point logic.
 
@@ -49,7 +49,7 @@ Positioning: premium black-and-white performance technology style. This file app
 - Product placement form: key area occupies 50%-65% of the image; do not create a cutaway when the internal structure is unknown.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Feature/structure image". Target filename token: Feature. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -85,7 +85,7 @@ Selling-point logic: support each selling point with the product's real structur
 - Product placement form: product occupies 25%-40% of the image and has a clear relationship with the scene result.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Core value scene image A". Target filename token: CoreA. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -121,7 +121,7 @@ Selling-point logic: show the most typical and important reason to buy, with the
 - Product placement form: clearly show the key connection or operation area.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Feature/structure image". Target filename token: Feature. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -157,7 +157,7 @@ Selling-point logic: support each selling point with the product's real structur
 - Product placement form: product occupies 25%-40% of the image and connects to a scene action.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Lifestyle/result image". Target filename token: Lifestyle. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -193,7 +193,7 @@ Selling-point logic: use realistic generalized scenes to show the usage result b
 - Product placement form: product occupies 30%-45% of the image and acts as the visual guide for performance.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Core value scene image B". Target filename token: CoreB. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -229,7 +229,7 @@ Selling-point logic: separate the scene and audience from CoreA and show another
 - Product placement form: user product and ordinary product must be the same size; the ordinary product must not imitate any competitor.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Comparison advantage image". Target filename token: Compare. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -265,7 +265,7 @@ Selling-point logic: compare only differences that can be proven from user-provi
 - Product placement form: product occupies 25%-35% of the image and does not block the table.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Differentiated value image". Target filename token: Value. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -301,7 +301,7 @@ Selling-point logic: translate differentiated value into readable data panels, b
 - Product placement form: product occupies 40%-55% of the image, with the key face oriented toward the camera.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Hero image". Target filename token: Hero. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.
@@ -337,7 +337,7 @@ Selling-point logic: establish product recognition, core value, and reasons to b
 - Product placement form: product occupies 45%-60% of the image, and dimension points align with real product boundaries.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor/platform/certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Size/specification image". Target filename token: Specs. Use the visual DNA of "premium black-and-white performance technology style": clean white-background technical pages combined with black-background high-performance scene pages, using black, white, deep blue, gold, and silver gray to express performance, speed, quality, compatibility, comparison, and professional credibility.

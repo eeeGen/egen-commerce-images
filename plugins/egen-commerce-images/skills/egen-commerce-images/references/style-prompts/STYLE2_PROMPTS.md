@@ -1,6 +1,6 @@
 <!-- English adaptation generated for ecommerce-product-images. Preserve variables and filename tokens. -->
 
-# style2 Universal Product Generation Index and GPT Image 2 Prompts
+# style2 Universal Product Generation Index and Prompts
 
 Positioning: warm-light immersive scenes plus dynamic green infographic styling. This file applies to any general product and is not bound to the original category of any reference image. During generation, inherit only the visual style, composition logic, information hierarchy, UI component language, scene expression, and selling-point logic.
 
@@ -51,7 +51,7 @@ Positioning: warm-light immersive scenes plus dynamic green infographic styling.
 - Product placement form: the product occupies 35%-50% of the image. Lighting effects must be reasonable for the product material and function.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Hero image. Target filename token: Hero. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling: a deep immersive background, warm yellow product lighting, dynamic green information bars, and strong scene mood.
@@ -87,7 +87,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: center the product in a front view, occupying 40%-55% of the image.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Size/specification image. Target filename token: Specs. Apply the style DNA through clean green infographic accents and subtle warm highlights, but prioritize measurement readability over immersive dark scenery.
@@ -123,7 +123,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: each step shows a real use or handling state without inventing actions.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Product usage guide. Target filename token: Guide. Apply the style DNA through clean green process cards, warm product highlights, and a professional infographic layout.
@@ -159,7 +159,7 @@ Compliance: do not invent steps, numbers, certifications, compatibility claims, 
 - Product placement form: the product appears on both sides with consistent appearance.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Lifestyle/result image. Target filename token: Lifestyle. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.
@@ -195,7 +195,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: the product is clearly identifiable in every grid cell.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Pain-point/selling-point image. Target filename token: Selling. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.
@@ -231,7 +231,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: show only verified structures or external feature points.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Feature/structure image. Target filename token: Feature. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling, with a dark abstract technical background.
@@ -267,7 +267,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: accessory quantity and form must come from user confirmation.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Feature/structure image. Target filename token: Feature. Apply the style DNA through green infographic accents, warm product highlights, and a clean system-explanation layout.
@@ -303,7 +303,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: standing, placed, or installed position must be realistic for the product.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Feature/structure image. Target filename token: Feature. Apply the style DNA through warm product highlights, green infographic callouts, and a clear structural explanation layout.
@@ -339,7 +339,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: the product occupies 25%-45% of the image and acts as the scene light source or visual focus.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Core value scene image A. Target filename token: CoreA. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.
@@ -375,7 +375,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: the product is identifiable in every scene.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: A+ closing image. Target filename token: Closing. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.
@@ -411,7 +411,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: the product appears in the foreground or middle ground with realistic proportions.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Core value scene image A. Target filename token: CoreA. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.
@@ -447,7 +447,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: the product is the scene focus and must not be overpowered by the background.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Core value scene image B. Target filename token: CoreB. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.
@@ -483,7 +483,7 @@ Compliance: do not invent numbers, certifications, compatibility claims, perform
 - Product placement form: the product appears in a natural use position.
 - Compliance boundary: do not state unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: Lifestyle/result image. Target filename token: Lifestyle. Apply the style DNA of warm-light immersive scenes plus dynamic green infographic styling.

@@ -1,4 +1,4 @@
-# style4 Universal Product Generation Index and GPT Image 2 Prompts
+# style4 Universal Product Generation Index and Prompts
 
 Positioning: blue safety-coverage and monitoring-technology style. This file applies to any general product and is not tied to the original category of any reference image. During generation, inherit only the visual style, composition, information hierarchy, UI components, scene expression, and selling-point logic.
 
@@ -50,7 +50,7 @@ Positioning: blue safety-coverage and monitoring-technology style. This file app
 - Product placement form: place the product in a reasonable use position without blocking key areas.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Product usage guide". Target filename token: Guide. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -86,7 +86,7 @@ Selling-point logic: use real steps to reduce the usage barrier, without inventi
 - Product placement form: group the product and verified accessories clearly.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Size and specification image". Target filename token: Specs. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -122,7 +122,7 @@ Selling-point logic: reduce pre-purchase dimension misunderstanding, and show on
 - Product placement form: beams must originate from real functional points on the product.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Feature/structure image". Target filename token: Feature. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -158,7 +158,7 @@ Selling-point logic: support selling points with the product's real structure, c
 - Product placement form: keep the product screen, panel, or key area clear.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Feature/structure image". Target filename token: Feature. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -194,7 +194,7 @@ Selling-point logic: support selling points with the product's real structure, c
 - Product placement form: show the product in an actual use position.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Lifestyle/result image". Target filename token: Lifestyle. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -230,7 +230,7 @@ Selling-point logic: use realistic generalized scenes to show product-driven usa
 - Product placement form: the product should occupy 30%-45% of the image and relate clearly to the scene result.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Core value scene image A". Target filename token: CoreA. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -266,7 +266,7 @@ Selling-point logic: show the most typical and important purchase reason, with t
 - Product placement form: keep the product visible; protection symbols must not cover the main subject.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Lifestyle/result image". Target filename token: Lifestyle. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -302,7 +302,7 @@ Selling-point logic: use realistic generalized scenes to show product-driven usa
 - Product placement form: keep the user product and generic solution at comparable visual size.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Comparison advantage image". Target filename token: Compare. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
@@ -338,7 +338,7 @@ Selling-point logic: compare only provable differences, and show the ordinary pr
 - Product placement form: render the ordinary product as brandless, gray, and generic.
 - Compliance boundary: do not write unconfirmed parameters, do not use competitor, platform, or certification logos, and do not copy original product facts from reference images.
 
-### Production-Ready GPT Image 2 Prompt
+### Production-Ready Prompt
 
 ```text
 Use the user-uploaded and confirmed {product} as the only source of truth for product appearance, and generate a 1:1 ecommerce detail image for a general product. Image type: "Comparison advantage image". Target filename token: Compare. Use the visual DNA of "blue safety-coverage and monitoring-technology style": a professional white-gray-blue technology look that emphasizes safety, coverage range, a monitoring viewpoint, workflow clarity, protection, and comparison. The image should make any product feel clearer, more controllable, more reassuring, and more visually covered.
