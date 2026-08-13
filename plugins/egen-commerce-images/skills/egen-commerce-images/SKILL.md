@@ -17,7 +17,7 @@ After entering that line, users are required to either upload actual photos or r
 
 Keep Step 1 separate from all other information collection. Do not ask for country, platform, style, product details, image types, ratio, quantity, or additional requirements in Step 1.
 
-After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and then read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by the server. Do not ask the user to copy JSON back into chat.
+After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and then read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by the server. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
 
 If the local form service or browser flow is unavailable, fall back to the two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
 
@@ -99,7 +99,7 @@ After the user uploads at least one current-chat product image or provides a pat
 python ..\..\scripts\product_form_server.py
 ```
 
-3. Read the printed `FORM_URL`, `LATEST_URL`, and `JSON_PATH`.
+3. Read the printed `FORM_URL`, `LATEST_URL`, `JSON_PATH`, and `PID`.
 4. Open `FORM_URL` in the Codex in-app Browser when available.
 5. Ask the user to fill the browser form and click `保存表单`.
 6. After the user says the form is saved, read the JSON file at `JSON_PATH`. The default path is `%TEMP%\egen-commerce-images\latest-product-task.json`.
@@ -142,7 +142,7 @@ Do not proceed until the required task options are filled: target country/langua
 
 ### Step 3: Parse and Validate Form Data
 
-For the local browser form workflow, read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by `../../scripts/product_form_server.py`. Do not ask the user to paste JSON into chat.
+For the local browser form workflow, read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by `../../scripts/product_form_server.py`. Do not ask the user to paste JSON into chat. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
 
 Expected saved JSON shape:
 

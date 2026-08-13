@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import tempfile
+import threading
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -38,7 +40,7 @@ def with_meta(payload: dict[str, Any]) -> dict[str, Any]:
 
 def make_handler(output_path: Path) -> type[BaseHTTPRequestHandler]:
     class ProductFormHandler(BaseHTTPRequestHandler):
-        server_version = "EgenProductForm/0.4"
+        server_version = "EgenProductForm/0.4.2"
 
         def log_message(self, format: str, *args: Any) -> None:
             return
@@ -61,6 +63,9 @@ def make_handler(output_path: Path) -> type[BaseHTTPRequestHandler]:
         def _send_json(self, status: int, payload: Any) -> None:
             body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
             self._send_bytes(status, body, "application/json; charset=utf-8")
+
+        def _schedule_shutdown(self) -> None:
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
 
         def do_OPTIONS(self) -> None:
             self._send_bytes(204, b"", "text/plain")
@@ -106,10 +111,20 @@ def make_handler(output_path: Path) -> type[BaseHTTPRequestHandler]:
                 self._send_json(200, {"ok": True, "outputPath": str(output_path)})
                 return
 
+            if path == "/shutdown":
+                self._send_json(200, {"ok": True, "message": "server shutting down"})
+                self._schedule_shutdown()
+                return
+
             self._send_json(404, {"error": "not_found"})
 
         def do_POST(self) -> None:
             path = self.path.split("?", 1)[0]
+            if path == "/shutdown":
+                self._send_json(200, {"ok": True, "message": "server shutting down"})
+                self._schedule_shutdown()
+                return
+
             if path != "/save":
                 self._send_json(404, {"error": "not_found"})
                 return
@@ -185,6 +200,7 @@ def main() -> int:
     print(f"FORM_URL=http://{host}:{port}/", flush=True)
     print(f"LATEST_URL=http://{host}:{port}/latest", flush=True)
     print(f"JSON_PATH={output_path}", flush=True)
+    print(f"PID={os.getpid()}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

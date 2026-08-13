@@ -1,5 +1,26 @@
 # Version Update
 
+## v0.4.2 - 2026-08-13
+
+### Summary
+
+Added an explicit shutdown path for the local browser form service so Codex can close the background process after reading the saved product task JSON into context.
+
+### Changes
+
+- Added a `/shutdown` endpoint to `scripts/product_form_server.py`.
+- Printed the service `PID` on startup for precise fallback cleanup.
+- Updated the form workflow to read `FORM_URL`, `LATEST_URL`, `JSON_PATH`, and `PID`.
+- Updated Step 3 to close the form server after saved JSON has been captured, before continuing to the analysis plan.
+- Updated the plugin manifest version to `0.4.2`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `scripts/product_form_server.py`
+- `SKILL.md`
+- `VERSION_UPDATE.md`
+
 ## v0.4.1 - 2026-08-13
 
 ### Summary
