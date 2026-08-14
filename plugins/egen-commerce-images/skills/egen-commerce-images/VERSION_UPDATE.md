@@ -1,5 +1,28 @@
 # Version Update
 
+## v0.6.0 - 2026-08-13
+
+### Summary
+
+Aligned the local product task form with the StarFlow STUDIO night-mode interface while keeping the existing form data flow and schema unchanged.
+
+### Changes
+
+- Restyled `product-task-form.html` with the StarFlow night palette, glass panels, compact workbench layout, top brand bar, workflow rail, and dark form controls.
+- Embedded the StarFlow night Q mark and assistant character assets inside the plugin so the form does not depend on LogoToolkit local paths.
+- Added a restricted `/assets/...` static route to the local form server for read-only plugin asset delivery.
+- Kept the existing conditional fields, country-to-platform autofill, image type multi-select, product-info splitting, JSON schema version, `/wait` flow, and save behavior unchanged.
+- Updated the plugin manifest version to `0.6.0` and aligned the manifest brand color with the StarFlow night accent.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `assets/skin/Q_night.png`
+- `assets/skin/nailong.png`
+- `scripts/product_form_server.py`
+- `VERSION_UPDATE.md`
+
 ## v0.5.0 - 2026-08-13
 
 ### Summary

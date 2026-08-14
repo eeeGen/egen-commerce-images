@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import mimetypes
 import os
 import sys
 import tempfile
@@ -19,6 +20,7 @@ from urllib.parse import parse_qs, urlparse
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+ASSETS_ROOT = PLUGIN_ROOT / "assets"
 FORM_PATH = PLUGIN_ROOT / "assets" / "product-task-form.html"
 DEFAULT_OUTPUT_DIR = (
     Path(tempfile.gettempdir())
@@ -58,6 +60,24 @@ def make_output_path(output_dir: Path, task_id: str, save_count: int) -> Path:
     return output_dir / name
 
 
+def resolve_asset_path(request_path: str) -> Path | None:
+    relative_path = request_path.removeprefix("/assets/").replace("/", os.sep)
+    if not relative_path or relative_path.startswith((".", os.sep)):
+        return None
+    candidate = (ASSETS_ROOT / relative_path).resolve()
+    assets_root = ASSETS_ROOT.resolve()
+    if not candidate.is_relative_to(assets_root):
+        return None
+    if not candidate.is_file():
+        return None
+    return candidate
+
+
+def content_type_for(path: Path) -> str:
+    guessed, _ = mimetypes.guess_type(str(path))
+    return guessed or "application/octet-stream"
+
+
 def make_handler(
     output_dir: Path,
     task_id: str,
@@ -72,7 +92,7 @@ def make_handler(
     }
 
     class ProductFormHandler(BaseHTTPRequestHandler):
-        server_version = "EgenProductForm/0.5.0"
+        server_version = "EgenProductForm/0.6.0"
 
         def log_message(self, format: str, *args: Any) -> None:
             return
@@ -132,6 +152,14 @@ def make_handler(
                     return
                 body = FORM_PATH.read_bytes()
                 self._send_bytes(200, body, "text/html; charset=utf-8")
+                return
+
+            if path.startswith("/assets/"):
+                asset_path = resolve_asset_path(path)
+                if asset_path is None:
+                    self._send_json(404, {"error": "asset_not_found"})
+                    return
+                self._send_bytes(200, asset_path.read_bytes(), content_type_for(asset_path))
                 return
 
             if path == "/config":
