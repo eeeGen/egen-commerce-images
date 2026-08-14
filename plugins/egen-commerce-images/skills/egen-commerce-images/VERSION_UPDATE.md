@@ -1,5 +1,25 @@
 # Version Update
 
+## v0.7.3 - 2026-08-14
+
+### Summary
+
+Added the missing dedicated Hero prompt for style6 by adapting the high-information-density stylehero composition to the style6 blue-and-gold scene-evidence visual system.
+
+### Changes
+
+- Added `style6-01-hero.png` with a standalone Hero generation index and production-ready prompt.
+- Retained the stylehero first-screen structure while rewriting palette, UI components, lighting, and evidence presentation for style6.
+- Added the verified `{quantity}`, `{bundle_headline}`, and `{target_user}` variables required by the Hero prompt.
+- Kept `STYLEhero_PROMPTS.md`, existing style6 image types, the form schema, the local service, and the generation workflow unchanged.
+- Updated the plugin manifest version to `0.7.3`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `skills/egen-commerce-images/references/style-prompts/STYLE6_PROMPTS.md`
+- `VERSION_UPDATE.md`
+
 ## v0.7.2 - 2026-08-14
 
 ### Summary

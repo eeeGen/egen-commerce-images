@@ -25,12 +25,53 @@ Positioning: blue-and-gold high-density scene-evidence style. This file applies 
 - `{product}`: any user-confirmed product.
 - `{product_category}`: the product category, used to select copy and scenes, not to alter appearance.
 - `{brand}`: the user-provided brand; omit it if unavailable.
+- `{quantity}`: the user-confirmed item count or bundle quantity; omit it if unavailable.
+- `{bundle_headline}`: a complete-set value headline used only when the product is not a verified multi-pack.
 - `{headline}` / `{subheadline}`: the main headline and subheadline for this image.
 - `{selling_points}`: verified selling points.
 - `{specs}`: verified specifications.
 - `{accessories}`: verified accessories.
 - `{scenes}` / `{use_context}`: realistic generalized scenes suitable for this product.
+- `{target_user}`: the intended buyer or user group, used only for relevance and tone without inventing unprovided facts.
 - `{language}`: the target country/platform language.
+
+## style6-01-hero.png
+
+### Universal Generation Index
+
+- Image type: Main image / Hero.
+- Variant positioning: high-information-density bundle or complete-configuration first-screen overview.
+- Visual style: use the stylehero information architecture with the style6 blue-and-gold high-density scene-evidence visual DNA, replacing all products, facts, and scenes with verified expressions for the current `{product}`.
+- Composition: oversized quantity or bundle headline on the left, enlarged product or verified product bundle in the center-right, 4-6 functional icon cards, a verified accessory matrix in the middle or lower area, and 3-5 generalized scene cards plus a deep-blue parameter bar along the bottom.
+- Information hierarchy: product body first, quantity or complete-set value second, core selling points third, and verified accessories, parameters, or scene evidence fourth.
+- Layout: keep the dense modules clearly separated with consistent margins and whitespace. Text, icons, accessory cards, and scene cards must not overlap or visually compress the product.
+- Icon system: blue circular or square linear icons, white rounded information cards, deep-blue pill labels, yellow/gold emphasis badges, and a deep-blue parameter strip.
+- Scene expression: use generalized realistic environments selected only from `{scenes}` and `{use_context}` to show where the current product fits.
+- UI component design: use a large-number or complete-set headline, a 2x3 icon grid, specification pills, a verified accessory matrix, a blue core-benefit card, and bottom scene thumbnails only when supported by user-provided facts.
+- Effects rendering language: realistic natural or cool professional lighting, soft product shadows, blue-white rim light, clean reflections, deep-blue gradient bars, and limited gold accent lines.
+- Selling-point logic: establish product recognition, verified configuration, core value, and reasons to purchase in one screen without inventing counts, accessories, specifications, or effects.
+- Product placement form: the product occupies about 70%-75% of the canvas for this Hero prompt. Supporting modules must adapt around the product rather than reducing product clarity.
+- Compliance boundary: do not write unconfirmed parameters, quantities, materials, certifications, compatibility claims, performance effects, or accessory counts. Do not use competitor, platform, or certification logos.
+
+### Production-Ready Prompt
+
+```text
+Use the user-uploaded and confirmed {product} as the only source of truth for product appearance. Generate a 1:1 ecommerce detail image for a general product. Image type: "Main image". Target filename token: Hero. Apply the style6 blue-and-gold high-density scene-evidence visual DNA to the stylehero high-information-density first-screen structure: realistic product presentation combined with professional infographics; deep navy, bright blue, white/light gray, and black as the main palette; limited yellow/gold accents for key titles, checkmarks, and borders. The result should communicate verified configuration, clear value, suitable scenes, and trustworthy reasons to purchase in one screen.
+
+Composition requirements: place an oversized quantity or complete-set headline on the left, show the main product or verified product bundle enlarged in the center-right, arrange 4-6 functional icon cards around clear whitespace, place a verified accessory matrix in the middle or lower area when accessories are provided, and add 3-5 generalized scene cards plus a deep-blue parameter bar along the bottom. Product placement: the product should occupy about 70%-75% of the canvas. Supporting modules must adapt around it and must not reduce product clarity. Preserve the real product proportions, colors, materials, structure, ports, accessories, surface finish, and edge details. Do not add unconfirmed parts.
+
+If {quantity} is provided and the product is a verified multi-pack or bundle, use the true count or set size in the prominent quantity headline. If the product is not a verified multi-pack, use {bundle_headline}, such as "Complete Set", "All-in-One Kit", or "Ready to Use", without implying an unconfirmed quantity. If {accessories} is provided, show only those verified packing-list items in the accessory matrix. If {accessories} is missing, omit the accessory matrix instead of inventing accessory objects, names, or counts.
+
+Information hierarchy: product body first, quantity or complete-set value second, 3-6 verified selling points third, and verified accessories, specifications, or scene evidence fourth. Use {headline} as the main headline and {subheadline} as the subtitle. Draw selling points only from {selling_points}, specifications only from {specs}, accessories only from {accessories}, and scenes only from {scenes} and {use_context}. Use {target_user} only to make wording and scene relevance appropriate; do not invent demographics, occupations, needs, or usage claims. Show {brand} only when the user provides it; otherwise omit the brand area. All visible text must use {language}, remain concise and readable, and contain no garbled characters.
+
+Layout and UI: use blue circular or square linear icons, white rounded information cards, deep-blue pill labels, yellow/gold emphasis badges, specification pills, a 2x3 functional icon grid, a blue core-benefit card, a verified accessory matrix, a deep-blue parameter strip, and bottom scene thumbnails as appropriate for this Hero image. Keep spacing and alignment precise. Text, icons, accessory cards, scene cards, and parameter labels must not overlap the product or one another. The image should feel evidence-rich, modular, and premium rather than crowded.
+
+Scene expression: create 3-5 generalized realistic usage-scene mini cards using concepts only from {scenes} and {use_context}, adapted to the current {product_category}. Do not reuse product identities, people, accessories, claims, or scene facts from reference images. Scene lighting may use realistic natural light or cool professional light while maintaining the style6 deep-blue and limited-gold information hierarchy.
+
+Effects rendering: use realistic natural or cool professional lighting, soft product shadows, blue-white rim light, clean reflections, deep-blue gradient bars, subtle blue technology light trails, and limited gold accent lines. Lighting, reflections, shadows, beams, and highlights must support product recognition and selling-point communication without creating false functions, mechanisms, outputs, or performance effects.
+
+Selling-point logic: establish product recognition, verified configuration, core value, and reasons to purchase in one screen. Do not invent quantities, included items, numbers, materials, certifications, compatibility, performance effects, efficacy, official endorsements, absolute promises, competitor defects, platform marks, or certification logos. The final image should look like a production-grade ecommerce Hero image ready for direct use.
+```
 
 ## style6-02-selling.png
 
