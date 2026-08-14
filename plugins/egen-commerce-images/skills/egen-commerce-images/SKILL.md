@@ -17,7 +17,7 @@ After entering that line, users are required to either upload actual photos or r
 
 Keep Step 1 separate from all other information collection. Do not ask for country, platform, style, product details, image types, ratio, quantity, or additional requirements in Step 1.
 
-After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script as a background process, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and then read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by the server. Never start the service with a foreground shell command that waits for `product_form_server.py` to exit. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
+After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script as a background process, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and call the printed `WAIT_URL` so Codex can automatically wait for the save result and read the task-specific JSON from the returned `jsonPath`. Never start the service with a foreground shell command that waits for `product_form_server.py` to exit. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
 
 If the local form service or browser flow is unavailable, fall back to the two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
 
@@ -105,12 +105,13 @@ Get-Content -LiteralPath $out -Raw -ErrorAction SilentlyContinue
 Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
 ```
 
-3. Read the printed `FORM_URL`, `LATEST_URL`, `JSON_PATH`, and `PID`.
+3. Read the printed `FORM_URL`, `LATEST_URL`, `WAIT_URL`, `JSON_DIR`, `TASK_ID`, and `PID`.
 4. Open `FORM_URL` in the Codex in-app Browser when available.
 5. Ask the user to fill the browser form and click `保存表单`.
-6. After the user says the form is saved, read the JSON file at `JSON_PATH`. The default path is `%TEMP%\egen-commerce-images\latest-product-task.json`.
+6. In parallel with the user filling the browser form, call `WAIT_URL` or `GET <FORM_URL base>/wait?timeout=600`. When it returns, read the returned `jsonPath`. Do not require the user to manually type `已保存`.
+7. If `/wait` times out or cannot be reached, ask the user to confirm after clicking `保存表单`, then read the current task result from `LATEST_URL`.
 
-The browser form provides dropdowns for target country/language, platform, knowledge style, ratio, quantity, and extra requirement mode. It provides checkboxes for image type selection, including `全选`. Runtime form results must stay outside the repository; do not commit generated JSON files.
+The browser form provides dropdowns for target country/language, platform, knowledge style, ratio, quantity, and extra requirement mode. It provides checkboxes for image type selection, including `全选`. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
 
 If the startup command returns exit code `124`, if the log does not contain `FORM_URL`, or if the printed `PID` is no longer running, treat the startup as failed and retry with a background `Start-Process` command before opening the browser. If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
@@ -138,7 +139,7 @@ If the startup command returns exit code `124`, if the log does not contain `FOR
 | --- | --- | --- |
 | 目标国家/语言 | 1 美国/英语；2 墨西哥/西班牙语；3 智利/西班牙语；4 哥伦比亚/西班牙语；5 南非/英语；6 其他：请填写 | 待填写 |
 | 目标平台 | 1 Amazon；2 MercadoLibre；3 Takealot；4 其他：请填写 | 待填写 |
-| knowledge style | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero；8 其他：请填写 | 待填写 |
+| knowledge style | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero | 待填写 |
 | 图片类型 | 1 全选；2 Hero；3 Selling；4 Feature；5 Specs；6 Lifestyle；7 Value；8 Compare；9 Closing；10 CoreA；11 CoreB；12 Guide；13 其他：请填写 | 待填写 |
 | 图片比例 | 1 1:1；2 4:5；3 3:4；4 16:9；5 9:16 | 待填写 |
 | 每类数量 | 1；2；4；6；10 | 待填写 |
@@ -148,7 +149,7 @@ Do not proceed until the required task options are filled: target country/langua
 
 ### Step 3: Parse and Validate Form Data
 
-For the local browser form workflow, read the saved JSON directly from `%TEMP%\egen-commerce-images\latest-product-task.json` or the `JSON_PATH` printed by `../../scripts/product_form_server.py`. Do not ask the user to paste JSON into chat. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
+For the local browser form workflow, read the saved JSON from the `jsonPath` returned by `WAIT_URL` / `/wait`. If `/wait` failed after the user saved, read the current service result from `LATEST_URL`. Do not ask the user to paste JSON into chat. The current JSON schema is version 2, but legacy schema version 1 form data may still be parsed if encountered. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
 
 Expected saved JSON shape:
 
@@ -180,8 +181,11 @@ Expected saved JSON shape:
     "extraRequirements": ""
   },
   "meta": {
-    "schemaVersion": 1,
-    "savedAt": "ISO-8601 timestamp"
+    "schemaVersion": 2,
+    "taskId": "short task id",
+    "formStartedAt": "ISO-8601 timestamp",
+    "savedAt": "ISO-8601 timestamp",
+    "saveCount": 1
   }
 }
 ```
@@ -190,7 +194,7 @@ For fallback Markdown tables, parse the user's filled tables and normalize numbe
 
 `全选` means the eleven standard image types: 主图 Hero, 痛点/卖点图 Selling, 功能/结构图 Feature, 尺寸规格图 Specs, 场景结果图 Lifestyle, 差异化价值图 Value, 对比优势图 Compare, A+ 收束图 Closing, 核心价值场景图 A CoreA, 核心价值场景图 B CoreB, 产品使用说明 Guide.
 
-If the saved JSON or fallback tables use `OTHER` / `其他` for country/language, platform, style, image type, or additional requirements but do not provide the custom value, ask one focused follow-up question for that item only. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
+If the saved JSON or fallback tables use `OTHER` / `其他` for country/language, platform, image type, or additional requirements but do not provide the custom value, ask one focused follow-up question for that item only. The HTML form and fallback table do not support custom knowledge styles; if the user needs a new style, treat it as a separate skill update request before generation. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
 
 Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, accessories, or other product facts. Product information fields may remain `待填写`; clearly separate known facts from assumptions or suggested wording.
 
@@ -216,6 +220,27 @@ If the user requests changes, output a revised plan and continue waiting for con
 After the user confirms the final analysis plan, generate the final localized product description and the confirmed final ecommerce image set of `selected image type count x quantity per type` images. Adapt each image to its selected image type while following the confirmed visual style, platform, country/language, product facts, ratio, quantity, and additional requirements.
 
 Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. Follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
+
+After each final image is generated, move the selected generated file out of the Codex default generated-images location into the product output folder. Move files; do not copy them, and do not intentionally leave duplicates in `$CODEX_HOME/generated_images/...`.
+
+Resolve the product output root from Step 1:
+
+- If Step 1 provides a valid product reference path and it is accessible, use that path to derive the product root.
+- If the path is a file under a directory named `material`, `image`, `images`, `input`, `source`, `reference`, or `references`, use that directory's parent as the product root.
+- If the path is any other file, use the file's parent directory as the product root.
+- If the path is a directory named `material`, `image`, `images`, `input`, `source`, `reference`, or `references`, use that directory's parent as the product root.
+- If the path is any other directory, use that directory as the product root.
+- If Step 1 has no usable local path, or the derived root is not writable, create a folder named after the product's Chinese name in the current writable workspace. If the product Chinese name is missing, ask one focused follow-up question for that name before moving files.
+
+Use this final path format:
+
+`<product-root>\output\<platform>-<country>-<allStyle>\<order>-<imageType>-<style>.png`
+
+Use lowercase file-safe slugs for `platform`, `country`, and `allStyle`. Map country codes as `US_EN -> us`, `MX_ES -> mx`, `CL_ES -> cl`, `CO_ES -> co`, `ZA_EN -> za`; for custom countries, create a conservative file-safe slug from the user's value. `allStyle` is the confirmed style token, or multiple confirmed style tokens joined by `-` if the user explicitly requested a combined style. Use two-digit order numbers in the confirmed image-type order, starting at `01`. Example:
+
+`E:\e-commerce\product\Q-020 2PCS音频线\output\mercadolibre-mx-stylehero-style6\01-Hero-stylehero.png`
+
+If a target file already exists, do not overwrite it. Ask the user whether to replace it or save with the next safe filename suffix.
 
 Every final image must include this exact constraint in its image-generation instructions:
 

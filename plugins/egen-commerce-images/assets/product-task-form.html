@@ -89,6 +89,10 @@
       gap: 6px;
     }
 
+    .field[hidden] {
+      display: none;
+    }
+
     .field.full {
       grid-column: 1 / -1;
     }
@@ -186,6 +190,10 @@
       border-color: var(--border);
     }
 
+    button.compact {
+      justify-self: start;
+    }
+
     .status {
       min-height: 40px;
       flex: 1;
@@ -236,15 +244,20 @@
     <header>
       <div>
         <h1>电商产品图任务表单</h1>
-        <p>填写后点击保存，Codex 将自动读取本地 JSON 文件继续生成分析计划。</p>
+        <p>填写后点击保存，小星保证把信息原封不动传递到codex~</p>
       </div>
-      <p class="hint" id="outputPath">正在读取保存路径...</p>
     </header>
 
     <form id="taskForm">
       <section aria-labelledby="productTitle">
         <h2 id="productTitle">产品信息</h2>
         <div class="grid">
+          <div class="field full">
+            <label for="bulkProductInfo">大段产品信息识别/拆分</label>
+            <textarea id="bulkProductInfo" name="bulkProductInfo" placeholder="可粘贴产品资料、规格说明、包装信息、卖点等文本。点击按钮后仅把能识别出的内容填入空字段。"></textarea>
+            <button class="secondary compact" type="button" id="splitProductInfo">识别并填入空字段</button>
+            <p class="hint">只按关键词做确定性拆分，不会编造缺失信息，也不会覆盖你已填写的字段。</p>
+          </div>
           <div class="field">
             <label for="productName">产品名称</label>
             <input id="productName" name="productName" autocomplete="off">
@@ -315,7 +328,7 @@
               <option value="OTHER">其他</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="countryLanguageOtherField" hidden>
             <label for="countryLanguageOther">其他国家/语言</label>
             <input id="countryLanguageOther" name="countryLanguageOther" autocomplete="off">
           </div>
@@ -329,7 +342,7 @@
               <option value="OTHER">其他</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="platformOtherField" hidden>
             <label for="platformOther">其他平台</label>
             <input id="platformOther" name="platformOther" autocomplete="off">
           </div>
@@ -344,12 +357,7 @@
               <option value="style5">style5</option>
               <option value="style6">style6</option>
               <option value="stylehero">stylehero</option>
-              <option value="OTHER">其他</option>
             </select>
-          </div>
-          <div class="field">
-            <label for="knowledgeStyleOther">其他 style</label>
-            <input id="knowledgeStyleOther" name="knowledgeStyleOther" autocomplete="off">
           </div>
           <fieldset>
             <legend>图片类型</legend>
@@ -370,7 +378,7 @@
               <label class="check"><input type="checkbox" name="imageTypes" value="OTHER"> 其他</label>
             </div>
           </fieldset>
-          <div class="field full">
+          <div class="field full" id="imageTypesOtherField" hidden>
             <label for="imageTypesOther">其他图片类型</label>
             <input id="imageTypesOther" name="imageTypesOther" autocomplete="off">
           </div>
@@ -378,7 +386,7 @@
             <label for="ratio">图片比例</label>
             <select id="ratio" name="ratio" required>
               <option value="">请选择</option>
-              <option value="1:1">1:1</option>
+              <option value="1:1" selected>1:1</option>
               <option value="4:5">4:5</option>
               <option value="3:4">3:4</option>
               <option value="16:9">16:9</option>
@@ -403,7 +411,7 @@
               <option value="custom">填写额外要求</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="extraRequirementsField" hidden>
             <label for="extraRequirements">额外要求内容</label>
             <textarea id="extraRequirements" name="extraRequirements"></textarea>
           </div>
@@ -421,23 +429,26 @@
   <script>
     const form = document.querySelector("#taskForm");
     const statusEl = document.querySelector("#status");
-    const outputPathEl = document.querySelector("#outputPath");
+    const countryLanguage = document.querySelector("#countryLanguage");
+    const countryLanguageOtherField = document.querySelector("#countryLanguageOtherField");
+    const countryLanguageOther = document.querySelector("#countryLanguageOther");
+    const platform = document.querySelector("#platform");
+    const platformOtherField = document.querySelector("#platformOtherField");
+    const platformOther = document.querySelector("#platformOther");
+    const ratio = document.querySelector("#ratio");
+    const extraRequirementMode = document.querySelector("#extraRequirementMode");
+    const extraRequirementsField = document.querySelector("#extraRequirementsField");
+    const extraRequirements = document.querySelector("#extraRequirements");
+    const imageTypesOtherField = document.querySelector("#imageTypesOtherField");
+    const imageTypesOther = document.querySelector("#imageTypesOther");
+    const bulkProductInfo = document.querySelector("#bulkProductInfo");
+    const splitProductInfo = document.querySelector("#splitProductInfo");
     const selectAllTypes = document.querySelector("#selectAllTypes");
     const imageTypeInputs = Array.from(document.querySelectorAll("input[name='imageTypes']"));
 
     function setStatus(message, kind = "") {
       statusEl.textContent = message;
       statusEl.className = `status ${kind}`.trim();
-    }
-
-    async function loadConfig() {
-      try {
-        const response = await fetch("/config");
-        const config = await response.json();
-        outputPathEl.textContent = `保存路径：${config.outputPath}`;
-      } catch (error) {
-        outputPathEl.textContent = "保存路径读取失败";
-      }
     }
 
     function fieldValue(name) {
@@ -473,7 +484,6 @@
           platform: fieldValue("platform"),
           platformOther: fieldValue("platformOther"),
           knowledgeStyle: fieldValue("knowledgeStyle"),
-          knowledgeStyleOther: fieldValue("knowledgeStyleOther"),
           imageTypes: selectedImageTypes(),
           imageTypesOther: fieldValue("imageTypesOther"),
           ratio: fieldValue("ratio"),
@@ -487,6 +497,95 @@
       };
     }
 
+    function setFieldHidden(wrapper, input, hidden) {
+      wrapper.hidden = hidden;
+      if (hidden && input) {
+        input.value = "";
+      }
+    }
+
+    function updateConditionalFields() {
+      setFieldHidden(
+        countryLanguageOtherField,
+        countryLanguageOther,
+        countryLanguage.value !== "OTHER"
+      );
+      setFieldHidden(platformOtherField, platformOther, platform.value !== "OTHER");
+      setFieldHidden(
+        imageTypesOtherField,
+        imageTypesOther,
+        !imageTypeInputs.some((input) => input.value === "OTHER" && input.checked)
+      );
+      setFieldHidden(
+        extraRequirementsField,
+        extraRequirements,
+        extraRequirementMode.value !== "custom"
+      );
+    }
+
+    function fillEmptyField(fieldName, value) {
+      const input = form.elements[fieldName];
+      const normalized = value.trim();
+      if (!input || !normalized || input.value.trim()) {
+        return false;
+      }
+      input.value = normalized;
+      return true;
+    }
+
+    function splitProductText() {
+      const text = bulkProductInfo.value.trim();
+      if (!text) {
+        setStatus("请先粘贴需要识别的产品信息。", "error");
+        return;
+      }
+
+      const fieldPatterns = [
+        ["productName", /(?:产品名称|品名|商品名称|名称)[:：]\s*([^\n\r]+)/i],
+        ["brand", /(?:品牌|Brand)[:：]\s*([^\n\r]+)/i],
+        ["category", /(?:商品类目|类目|分类|Category)[:：]\s*([^\n\r]+)/i],
+        ["material", /(?:材质|成分|材料|Material)[:：]\s*([^\n\r]+)/i],
+        ["sizeSpec", /(?:尺寸|规格|型号|Size|Spec)[:：]\s*([^\n\r]+)/i],
+        ["colorVariant", /(?:颜色|款式|Color|Variant)[:：]\s*([^\n\r]+)/i],
+        ["packageList", /(?:包装清单|包装|配件|内含|Package)[:：]\s*([^\n\r]+)/i],
+        ["targetUsers", /(?:适用人群|人群|用户|Target users?)[:：]\s*([^\n\r]+)/i],
+        ["useScenarios", /(?:使用场景|场景|用途|Use cases?)[:：]\s*([^\n\r]+)/i],
+        ["sellingPoints", /(?:核心卖点|卖点|亮点|优势|Selling points?)[:：]\s*([^\n\r]+)/i],
+        ["avoidExpressions", /(?:需要避免的表达|避免表达|禁用词|Avoid)[:：]\s*([^\n\r]+)/i],
+        ["additionalNotes", /(?:其他补充|补充|备注|Notes?)[:：]\s*([^\n\r]+)/i],
+        ["productInfoPath", /(?:产品信息文档路径|文档路径|资料路径|Path)[:：]\s*([^\n\r]+)/i]
+      ];
+
+      let filled = 0;
+      fieldPatterns.forEach(([fieldName, pattern]) => {
+        const match = text.match(pattern);
+        if (match && fillEmptyField(fieldName, match[1])) {
+          filled += 1;
+        }
+      });
+
+      if (filled > 0) {
+        setStatus(`已识别并填入 ${filled} 个空字段。`, "ok");
+      } else {
+        setStatus("未识别到“字段名：内容”格式的信息，已保持现有字段不变。", "error");
+      }
+    }
+
+    countryLanguage.addEventListener("change", () => {
+      if (countryLanguage.value === "MX_ES") {
+        platform.value = "MercadoLibre";
+      } else if (countryLanguage.value === "ZA_EN") {
+        platform.value = "Takealot";
+      } else {
+        platform.value = "";
+      }
+      updateConditionalFields();
+    });
+
+    platform.addEventListener("change", updateConditionalFields);
+    extraRequirementMode.addEventListener("change", updateConditionalFields);
+    splitProductInfo.addEventListener("click", splitProductText);
+
     selectAllTypes.addEventListener("change", () => {
       imageTypeInputs
         .filter((input) => input.value !== "OTHER")
@@ -499,6 +598,7 @@
       input.addEventListener("change", () => {
         const standardInputs = imageTypeInputs.filter((item) => item.value !== "OTHER");
         selectAllTypes.checked = standardInputs.every((item) => item.checked);
+        updateConditionalFields();
       });
     });
 
@@ -521,13 +621,21 @@
         if (!response.ok || !result.ok) {
           throw new Error(result.message || result.error || "保存失败");
         }
-        setStatus(`已保存：${result.outputPath}；时间：${result.savedAt}`, "ok");
+        setStatus(`小星已经记住所有信息啦~接下来的事儿包在小星身上！时间：${result.savedAt}`, "ok");
       } catch (error) {
         setStatus(`保存失败：${error.message}`, "error");
       }
     });
 
-    loadConfig();
+    form.addEventListener("reset", () => {
+      window.setTimeout(() => {
+        ratio.value = "1:1";
+        updateConditionalFields();
+        setStatus("尚未保存。");
+      }, 0);
+    });
+
+    updateConditionalFields();
   </script>
 </body>
 </html>

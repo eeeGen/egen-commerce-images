@@ -1,5 +1,31 @@
 # Version Update
 
+## v0.5.0 - 2026-08-13
+
+### Summary
+
+Improved the local browser form workflow with conditional fields, task-specific JSON files, automatic save waiting, deterministic product-info splitting, and final image output relocation rules.
+
+### Changes
+
+- Hid runtime save paths from the browser UI and replaced save messages with user-friendly status text plus timestamp.
+- Added conditional display for custom country/language, custom platform, custom image type, and extra requirement content.
+- Removed custom knowledge style input from the browser form and fallback table.
+- Added deterministic large-text product information splitting into empty product fields.
+- Added country-to-platform autofill for Mexico/MercadoLibre and South Africa/Takealot, and defaulted image ratio to `1:1`.
+- Changed form saves from a shared `latest-product-task.json` path to task-specific JSON files under `%TEMP%\egen-commerce-images\tasks\`.
+- Added `/wait` long polling so Codex can automatically detect a saved form and read the returned `jsonPath`.
+- Updated Step 11 to move final generated images out of the Codex generated-images folder into the product output folder with the required marketplace/country/style naming convention.
+- Updated the plugin manifest version to `0.5.0`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `scripts/product_form_server.py`
+- `SKILL.md`
+- `VERSION_UPDATE.md`
+
 ## v0.4.3 - 2026-08-13
 
 ### Summary
