@@ -1,7 +1,7 @@
 {
   "name": "egen-commerce-images",
-  "version": "0.6.0",
-  "description": "Ecommerce image-generation skills for product visual strategy, GPT Image 2 prompt sets, and SEO product image naming.",
+  "version": "0.7.2",
+  "description": "Ecommerce skills for product information extraction, visual strategy, GPT Image 2 prompt sets, and SEO image naming.",
   "author": {
     "name": "eGen",
     "email": "egenwuu@gmail.com",
@@ -13,6 +13,7 @@
   "keywords": [
     "ecommerce",
     "product-images",
+    "product-info",
     "gpt-image",
     "seo-naming",
     "marketplace"
@@ -20,8 +21,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "eGen-commerce-images",
-    "shortDescription": "Ecommerce product image prompts and SEO image naming.",
-    "longDescription": "Create marketplace-ready product image strategies, GPT Image 2 prompt sets, localized listing copy, and SEO-friendly ecommerce product image filenames.",
+    "shortDescription": "Product facts, ecommerce visuals, and SEO naming.",
+    "longDescription": "Extract structured product facts from image folders, create marketplace-ready image strategies and GPT Image 2 prompt sets, and organize ecommerce images with SEO-friendly filenames.",
     "developerName": "eGen",
     "category": "Productivity",
     "capabilities": [
@@ -32,6 +33,7 @@
     "defaultPrompt": [
       "Create an ecommerce product image plan.",
       "Generate marketplace product image prompts.",
+      "Extract product information from an image folder.",
       "Rename product images for SEO."
     ],
     "brandColor": "#36F4A4"

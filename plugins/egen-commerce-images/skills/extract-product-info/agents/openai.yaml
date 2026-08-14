@@ -1,0 +1,4 @@
+interface:
+  display_name: "Extract Product Info"
+  short_description: "Extract product facts from image folders"
+  default_prompt: "Use $extract-product-info to read this product image folder in order and complete the built-in product information template."

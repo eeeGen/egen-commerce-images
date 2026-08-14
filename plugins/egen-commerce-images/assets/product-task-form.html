@@ -160,11 +160,35 @@
       font-size: 11px;
     }
 
+    .form-tabs,
     .header-actions {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
+    }
+
+    .form-tabs {
+      margin-left: auto;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(36, 48, 50, 0.48);
+    }
+
+    .tab-button {
+      min-height: 30px;
+      padding: 0 13px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .tab-button[aria-selected="true"] {
+      color: #02090a;
+      border-color: var(--accent);
+      background: var(--accent);
     }
 
     .status-pill {
@@ -238,6 +262,15 @@
       font-size: 11px;
     }
 
+    .rail-status-label {
+      margin: 4px 7px 7px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 760;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
     .status-dot {
       display: inline-block;
       width: 7px;
@@ -286,7 +319,7 @@
 
     .content-grid {
       display: grid;
-      grid-template-columns: minmax(360px, 1.1fr) minmax(360px, 0.95fr);
+      grid-template-columns: minmax(0, 1fr);
       align-items: start;
       gap: 12px;
       min-width: 0;
@@ -297,6 +330,10 @@
       min-width: 0;
       padding: 14px;
       border-radius: var(--radius-panel);
+    }
+
+    .task-panel[hidden] {
+      display: none;
     }
 
     .panel-header {
@@ -490,14 +527,15 @@
 
     .statusbar {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
-      min-height: 36px;
-      margin: 0 2px;
-      padding: 7px 11px;
-      border-radius: var(--radius-control);
+      min-height: 72px;
+      margin: 0 7px 4px;
+      padding: 10px 11px;
+      border-radius: 12px;
       color: var(--muted);
-      font-size: 10px;
+      font-size: 11px;
+      line-height: 1.45;
       overflow-wrap: anywhere;
     }
 
@@ -559,6 +597,15 @@
         margin-bottom: 10px;
       }
 
+      .topbar {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .brand-lockup {
+        flex: 1 1 100%;
+      }
+
       .rail {
         padding: 10px;
       }
@@ -582,8 +629,23 @@
       }
 
       .header-actions {
+        order: 2;
         width: 100%;
         flex-wrap: wrap;
+      }
+
+      .form-tabs {
+        width: 100%;
+        margin-left: 0;
+        order: 1;
+      }
+
+      .tab-button {
+        flex: 1 1 0;
+      }
+
+      .statusbar {
+        min-height: 48px;
       }
 
       .header-actions button.primary {
@@ -634,6 +696,10 @@
           <p>填写后点击保存，小星保证把信息原封不动传递到codex~</p>
         </div>
       </div>
+      <nav class="form-tabs" aria-label="表单切换">
+        <button class="tab-button" type="button" data-panel-target="productPanel" aria-controls="productPanel" aria-selected="true">产品信息</button>
+        <button class="tab-button" type="button" data-panel-target="taskPanel" aria-controls="taskPanel" aria-selected="false">任务选项</button>
+      </nav>
       <div class="header-actions">
         <span class="status-pill"><span class="status-dot"></span> LOCAL FORM</span>
         <button class="secondary" type="reset" form="taskForm">清空</button>
@@ -646,9 +712,14 @@
       <div class="rail-item is-active"><span>填写任务</span><span>01</span></div>
       <div class="rail-item"><span>保存 JSON</span><span>02</span></div>
       <div class="rail-item"><span>Codex 读取</span><span>03</span></div>
-      <div class="rail-caption">状态</div>
+      <div class="rail-caption">运行</div>
       <div class="queue-item"><span class="status-dot"></span><span>本地服务运行中</span></div>
       <div class="queue-item"><span class="status-dot"></span><span>等待表单保存</span></div>
+      <div class="rail-status-label">当前状态</div>
+      <div id="status" class="statusbar" role="status" aria-live="polite">
+        <span class="status-dot"></span>
+        <span>尚未保存。</span>
+      </div>
     </aside>
 
     <form id="taskForm" class="workspace">
@@ -661,7 +732,7 @@
       </div>
 
       <div class="content-grid">
-      <section class="glass-panel" aria-labelledby="productTitle">
+      <section id="productPanel" class="glass-panel task-panel" aria-labelledby="productTitle">
         <div class="panel-header">
           <div class="panel-title">
             <span class="panel-icon">P</span>
@@ -731,7 +802,7 @@
         </div>
       </section>
 
-      <section class="glass-panel" aria-labelledby="taskTitle">
+      <section id="taskPanel" class="glass-panel task-panel" aria-labelledby="taskTitle" hidden>
         <div class="panel-header">
           <div class="panel-title">
             <span class="panel-icon">T</span>
@@ -842,17 +913,14 @@
         </div>
       </section>
       </div>
-
-      <div id="status" class="statusbar" role="status">
-        <span class="status-dot"></span>
-        <span>尚未保存。</span>
-      </div>
     </form>
   </main>
 
   <script>
     const form = document.querySelector("#taskForm");
     const statusEl = document.querySelector("#status");
+    const tabButtons = Array.from(document.querySelectorAll(".tab-button"));
+    const taskPanels = Array.from(document.querySelectorAll(".task-panel"));
     const countryLanguage = document.querySelector("#countryLanguage");
     const countryLanguageOtherField = document.querySelector("#countryLanguageOtherField");
     const countryLanguageOther = document.querySelector("#countryLanguageOther");
@@ -878,6 +946,16 @@
       const text = document.createElement("span");
       text.textContent = message;
       statusEl.append(dot, text);
+    }
+
+    function setActivePanel(panelId) {
+      taskPanels.forEach((panel) => {
+        panel.hidden = panel.id !== panelId;
+      });
+      tabButtons.forEach((button) => {
+        const isActive = button.dataset.panelTarget === panelId;
+        button.setAttribute("aria-selected", String(isActive));
+      });
     }
 
     function fieldValue(name) {
@@ -1031,6 +1109,12 @@
       });
     });
 
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setActivePanel(button.dataset.panelTarget);
+      });
+    });
+
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const payload = buildPayload();
@@ -1065,6 +1149,7 @@
     });
 
     updateConditionalFields();
+    setActivePanel("productPanel");
   </script>
 </body>
 </html>

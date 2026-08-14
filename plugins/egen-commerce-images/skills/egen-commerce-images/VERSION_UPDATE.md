@@ -1,5 +1,69 @@
 # Version Update
 
+## v0.7.2 - 2026-08-14
+
+### Summary
+
+Changed the ecommerce image output archival rule so final generated images are copied into the product workspace output folder while the Codex default generated-images archive remains intact.
+
+### Changes
+
+- Updated Step 11 to copy generated image files into the product output folder instead of moving them.
+- Required the original files under `$CODEX_HOME/generated_images/...` to remain as the Codex default archive.
+- Kept the existing output folder naming convention, collision handling, JSON schema, form service, and generation workflow unchanged.
+- Updated the plugin manifest version to `0.7.2`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `skills/egen-commerce-images/SKILL.md`
+- `VERSION_UPDATE.md`
+
+## v0.7.1 - 2026-08-14
+
+### Summary
+
+Improved the StarFlow night product task form by switching the two large form sections through top-bar tabs and moving all save, validation, and split-status messages into the left status rail.
+
+### Changes
+
+- Changed the browser form from showing both `产品信息` and `任务选项` panels at once to a top-bar tab interaction that shows one panel at a time.
+- Moved the form status component from the bottom of the form into the left rail so success, error, and processing messages are visible without scrolling.
+- Kept the existing JSON schema, save payload, `/save`, `/wait`, form service behavior, and skill workflow unchanged.
+- Updated the plugin manifest version to `0.7.1`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `VERSION_UPDATE.md`
+- `docs/plan-archives/2026-08-14-v0.7.1-form-tabs-status-rail.md`
+
+## v0.7.0 - 2026-08-13
+
+### Summary
+
+Added `extract-product-info` as the plugin's third independent skill. It reads product image folders in order, fills a fixed product information template, and reconciles optional supplemental attributes without entering the ecommerce image-generation workflow.
+
+### Changes
+
+- Added the independent `extract-product-info` skill with its own trigger description and UI metadata.
+- Built the fixed product information template into the new skill so users only need to provide a folder path and optional supplemental information such as Product Attributes tables.
+- Required image-by-image processing in natural filename order, with the current template refreshed and per-file findings recorded after each image.
+- Added precedence and provenance rules for user corrections, structured attributes, visible evidence, and image marketing copy, while requiring conflicts, missing units, and possible brand translations to be flagged.
+- Added context-budget guidance and a deterministic continuation checkpoint for an actual tool or context limit, without claiming a fixed per-task image count.
+- Kept `egen-commerce-images` focused on its existing 11-step ecommerce image-generation workflow and kept `seo-naming` unchanged.
+- Defined a self-contained input/output boundary suitable for a future subagent integration, without enabling subagent orchestration in this version.
+- Updated the plugin manifest version to `0.7.0`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `skills/extract-product-info/SKILL.md`
+- `skills/extract-product-info/agents/openai.yaml`
+- `VERSION_UPDATE.md`
+- `docs/plan-archives/2026-08-13-v0.7.0-product-info-template-workflow.md`
+
 ## v0.6.0 - 2026-08-13
 
 ### Summary

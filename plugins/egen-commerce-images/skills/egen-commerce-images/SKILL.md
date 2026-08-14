@@ -221,7 +221,7 @@ After the user confirms the final analysis plan, generate the final localized pr
 
 Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. Follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
 
-After each final image is generated, move the selected generated file out of the Codex default generated-images location into the product output folder. Move files; do not copy them, and do not intentionally leave duplicates in `$CODEX_HOME/generated_images/...`.
+After each final image is generated, copy the selected generated file from the Codex default generated-images location into the product output folder. Copy files; do not move or delete the original generated files, and intentionally keep the Codex default generated-images archive in `$CODEX_HOME/generated_images/...`.
 
 Resolve the product output root from Step 1:
 
