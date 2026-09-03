@@ -1,5 +1,31 @@
 # Version Update
 
+## v0.8.0 - 2026-09-03
+
+### Summary
+
+Added a customer-reference style mode that produces one independently mapped final image per customer output card, while preserving the existing built-in style workflow.
+
+### Changes
+
+- Added a style-source switch: built-in style tasks remain unchanged; customer-reference tasks do not read built-in prompt documents or knowledge images.
+- Added local, top-level directory scanning for up to 50 product photos and 30 style references, with thumbnail selection and a customer-selected global color mother image.
+- Added free-named output cards. Each card requires 1–4 customer-selected product photos and exactly 1 style reference, with card-level ratio and scene/color overrides.
+- Added server-side material-ID resolution so saved customer-reference JSON contains verified local product and style paths rather than browser-supplied paths.
+- Hardened the local form service by removing wildcard CORS, adding a task token for material endpoints, and limiting previews to images scanned during the active task.
+- Added customer-reference generation, confirmation, protected-element replacement, and direct-delivery rules to the main skill and a routed reference workflow.
+- Added regression tests for directory scanning and customer-reference path resolution.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `scripts/product_form_server.py`
+- `scripts/test_product_form_server.py`
+- `skills/egen-commerce-images/SKILL.md`
+- `skills/egen-commerce-images/references/customer-reference-workflow.md`
+- `skills/egen-commerce-images/VERSION_UPDATE.md`
+
 ## v0.7.4 - 2026-09-03
 
 ### Summary

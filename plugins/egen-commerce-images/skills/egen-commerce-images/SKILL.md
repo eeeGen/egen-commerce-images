@@ -19,6 +19,8 @@ Keep Step 1 separate from all other information collection. Do not ask for count
 
 After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script as a background process, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and call the printed `WAIT_URL` so Codex can automatically wait for the save result and read the task-specific JSON from the returned `jsonPath`. Never start the service with a foreground shell command that waits for `product_form_server.py` to exit. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
 
+`taskOptions.styleSource` selects the visual workflow. Treat a missing value in legacy JSON as `builtin`. For `builtin`, follow the existing knowledge-style workflow below. For `customer-reference`, read [客户参考风格工作流](references/customer-reference-workflow.md) before parsing the task, planning, or generating; do not mix that mode with built-in style prompts or knowledge images.
+
 If the local form service or browser flow is unavailable, fall back to the two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
 
 Do not output the product analysis plan until the saved form JSON or fallback tables are filled sufficiently and required task options have passed validation.
@@ -34,7 +36,13 @@ Strictly distinguish `knowledge` library images from product images uploaded by 
 - Never treat `knowledge` images as the current product's real photo.
 - Never infer that the user has completed Step 1 from `knowledge` images.
 - Never use the product, facts, dimensions, colors, accessories, functions, brand, or visual details from `knowledge` images as facts about the current product.
-- The current product must come from newly uploaded product real photos or reference photos in the current chat. If the current chat has no new user-uploaded product image, stay at Step 1 and keep asking for an upload.
+- The current product must come from newly uploaded product real photos or reference photos in the current chat, or from the user-provided local product-material path. If neither is available, stay at Step 1 and keep asking for an upload or path.
+
+### Customer Reference Source Mode
+
+When `taskOptions.styleSource` is `customer-reference`, customer-selected local reference images are the only style source. Do not read a built-in style prompt document, use `E:\e-commerce\knowledge`, or apply Type-Specific Reference Selection. Follow [客户参考风格工作流](references/customer-reference-workflow.md) for the strict per-card reference mapping, color-motherboard rule, confirmation gate, and image-generation calls.
+
+### Built-in Style Source Mode
 
 When choosing a style, first let the user choose one available built-in style prompt document. The available style documents are:
 
@@ -114,7 +122,7 @@ Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
 6. In parallel with the user filling the browser form, call `WAIT_URL` or `GET <FORM_URL base>/wait?timeout=600`. When it returns, read the returned `jsonPath`. Do not require the user to manually type `已保存`.
 7. If `/wait` times out or cannot be reached, ask the user to confirm after clicking `保存表单`, then read the current task result from `LATEST_URL`.
 
-The browser form provides dropdowns for target country/language, platform, knowledge style, ratio, quantity, and extra requirement mode. It provides checkboxes for image type selection, including `全选`. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
+The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans customer-provided local product and style directories, lets the customer select a color mother image, and creates free output cards with 1–4 product images and exactly 1 style reference each. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
 
 If the startup command returns exit code `124`, if the log does not contain `FORM_URL`, or if the printed `PID` is no longer running, treat the startup as failed and retry with a background `Start-Process` command before opening the browser. If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
@@ -142,17 +150,20 @@ If the startup command returns exit code `124`, if the log does not contain `FOR
 | --- | --- | --- |
 | 目标国家/语言 | 1 美国/英语；2 墨西哥/西班牙语；3 智利/西班牙语；4 哥伦比亚/西班牙语；5 南非/英语；6 其他：请填写 | 待填写 |
 | 目标平台 | 1 Amazon；2 MercadoLibre；3 Takealot；4 其他：请填写 | 待填写 |
-| knowledge style | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero；8 style6plus（仅 Feature 验证） | 待填写 |
-| 图片类型 | 1 全选；2 Hero；3 Selling；4 Feature；5 Specs；6 Lifestyle；7 Value；8 Compare；9 Closing；10 CoreA；11 CoreB；12 Guide；13 其他：请填写 | 待填写 |
+| 风格来源 | 1 内置风格；2 客户参考风格 | 待填写 |
+| knowledge style（仅内置风格） | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero；8 style6plus（仅 Feature 验证） | 待填写 |
+| 图片类型（仅内置风格） | 1 全选；2 Hero；3 Selling；4 Feature；5 Specs；6 Lifestyle；7 Value；8 Compare；9 Closing；10 CoreA；11 CoreB；12 Guide；13 其他：请填写 | 待填写 |
 | 图片比例 | 1 1:1；2 4:5；3 3:4；4 16:9；5 9:16 | 待填写 |
-| 每类数量 | 1；2；4；6；10 | 待填写 |
+| 每类数量（仅内置风格） | 1；2；4；6；10 | 待填写 |
 | 额外生图要求 | 1 无额外要求；2 填写额外要求 | 1 |
 
-Do not proceed until the required task options are filled: target country/language, platform, knowledge style, image types, ratio, and quantity per type. Defaults are English and Spanish, but accept additional languages when the user supplies them.
+For a Markdown fallback in customer-reference mode, append one row per output card: `卡片名称｜表达意图｜产品实拍路径（1–4 条）｜风格参考路径（恰好 1 条）｜比例覆写（可空）｜色彩策略（auto/master/scene）｜文案覆写（可空）`. Also require one `全局色彩母版路径` from the style-reference directory. Do not auto-select or auto-map images.
+
+Do not proceed until the required task options are filled. Built-in mode requires target country/language, platform, knowledge style, image types, ratio, and quantity per type. Customer-reference mode requires target country/language, platform, global ratio, a color mother path, and at least one complete output card. Defaults are English and Spanish, but accept additional languages when the user supplies them.
 
 ### Step 3: Parse and Validate Form Data
 
-For the local browser form workflow, read the saved JSON from the `jsonPath` returned by `WAIT_URL` / `/wait`. If `/wait` failed after the user saved, read the current service result from `LATEST_URL`. Do not ask the user to paste JSON into chat. The current JSON schema is version 2, but legacy schema version 1 form data may still be parsed if encountered. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
+For the local browser form workflow, read the saved JSON from the `jsonPath` returned by `WAIT_URL` / `/wait`. If `/wait` failed after the user saved, read the current service result from `LATEST_URL`. Do not ask the user to paste JSON into chat. The current JSON schema is version 3; schema versions 1 and 2 remain valid legacy built-in-style inputs. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
 
 Expected saved JSON shape:
 
@@ -176,6 +187,7 @@ Expected saved JSON shape:
   "taskOptions": {
     "countryLanguage": "US_EN",
     "platform": "Amazon",
+    "styleSource": "builtin",
     "knowledgeStyle": "style1",
     "imageTypes": ["Hero"],
     "ratio": "1:1",
@@ -184,7 +196,7 @@ Expected saved JSON shape:
     "extraRequirements": ""
   },
   "meta": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "taskId": "short task id",
     "formStartedAt": "ISO-8601 timestamp",
     "savedAt": "ISO-8601 timestamp",
@@ -193,15 +205,17 @@ Expected saved JSON shape:
 }
 ```
 
+For `customer-reference`, `knowledgeStyle`, `imageTypes`, and `quantityPerType` are not generation requirements. Require the server-resolved `referenceWorkflow.colorMasterPath` and at least one `referenceWorkflow.outputs[]` record. Each record must contain a nonempty name, exactly 1–4 `productImagePaths`, and exactly 1 `styleReferencePath`; reject incomplete mappings with one focused request for correction. Read [客户参考风格工作流](references/customer-reference-workflow.md) before proceeding.
+
 For fallback Markdown tables, parse the user's filled tables and normalize numbered options or fixed enum values. Image types support multiple selections such as `2,3,5`, `Hero,Selling,Specs`, or Chinese image type names.
 
 `全选` means the eleven standard image types: 主图 Hero, 痛点/卖点图 Selling, 功能/结构图 Feature, 尺寸规格图 Specs, 场景结果图 Lifestyle, 差异化价值图 Value, 对比优势图 Compare, A+ 收束图 Closing, 核心价值场景图 A CoreA, 核心价值场景图 B CoreB, 产品使用说明 Guide.
 
-If the saved JSON or fallback tables use `OTHER` / `其他` for country/language, platform, image type, or additional requirements but do not provide the custom value, ask one focused follow-up question for that item only. The HTML form and fallback table do not support custom knowledge styles; if the user needs a new style, treat it as a separate skill update request before generation. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
+If the saved JSON or fallback tables use `OTHER` / `其他` for country/language, platform, image type, or additional requirements but do not provide the custom value, ask one focused follow-up question for that item only. The HTML form and fallback table do not support custom knowledge styles in built-in mode; if the user needs a new built-in style, treat it as a separate skill update request before generation. Customer-reference mode uses client images instead. If the user selects another platform, adapt conservatively from general marketplace best practices and ask one focused clarification only if the platform has unusual image rules.
 
 Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, accessories, or other product facts. Product information fields may remain `待填写`; clearly separate known facts from assumptions or suggested wording.
 
-State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. Calculate `selected image type count x quantity per type`. If the result may touch or exceed the active `image_gen.imagegen` single-request limit, ask the user to choose fewer images or generate in batches.
+State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. In built-in mode, calculate `selected image type count x quantity per type` and batch only when needed. In customer-reference mode, generate exactly one final image per confirmed output card, with a separate call for every card.
 
 ### Step 10: Analysis Plan and Confirmation
 
@@ -214,15 +228,17 @@ Only after Step 1 is complete and the Step 2 saved form JSON or fallback tables 
 - 电商标题建议：关键词优化版
 - 电商标题建议：卖点突出版
 - 合规提醒
-- 套图生成范围：平台、国家/语言、knowledge style、图片类型、比例、每类数量、补充要求
+- 套图生成范围：平台、国家/语言、比例、补充要求，以及以下之一：内置 mode 的 knowledge style、图片类型与每类数量；客户参考 mode 的逐卡名称、产品实拍文件、风格参考文件、色彩母版、色彩策略、最终比例、表达意图与文案草案。
 
 If the user requests changes, output a revised plan and continue waiting for confirmation. Do not generate any image until the user clearly confirms the final plan.
 
 ### Step 11: Generate Final Outputs
 
-After the user confirms the final analysis plan, generate the final localized product description and the confirmed final ecommerce image set of `selected image type count x quantity per type` images. Adapt each image to its selected image type while following the confirmed visual style, platform, country/language, product facts, ratio, quantity, and additional requirements.
+After the user confirms the final analysis plan, generate the final localized product description and the confirmed ecommerce image set. In built-in mode, generate `selected image type count x quantity per type` images. In customer-reference mode, generate one final image for each confirmed output card, in card order.
 
-Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. Follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
+Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. In built-in mode, follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
+
+In customer-reference mode, follow [客户参考风格工作流](references/customer-reference-workflow.md). For every card, pass only that card's 1–4 resolved product paths and 1 resolved style-reference path to `image_gen.imagegen` through `referenced_image_paths`. The product paths directly determine product appearance; do not turn product appearance into text instructions or add unselected product images. The style reference directly determines composition and visual language. A different color mother image may inform only a concise color-direction instruction, never a second style-reference image. Preserve the reference's scene, composition, camera, lighting, information hierarchy, layout rhythm, text position, density, type mood, and generic components as far as possible while replacing the product and all protected or third-party elements. Generate every confirmed card once and deliver all generated results without automatic quality inspection or retry.
 
 After each final image is generated, copy the selected generated file from the Codex default generated-images location into the product output folder. Copy files; do not move or delete the original generated files, and intentionally keep the Codex default generated-images archive in `$CODEX_HOME/generated_images/...`.
 
@@ -239,7 +255,7 @@ Use this final path format:
 
 `<product-root>\output\<platform>-<country>-<allStyle>\<order>-<imageType>-<style>.png`
 
-Use lowercase file-safe slugs for `platform`, `country`, and `allStyle`. Map country codes as `US_EN -> us`, `MX_ES -> mx`, `CL_ES -> cl`, `CO_ES -> co`, `ZA_EN -> za`; for custom countries, create a conservative file-safe slug from the user's value. `allStyle` is the confirmed style token, or multiple confirmed style tokens joined by `-` if the user explicitly requested a combined style. Use two-digit order numbers in the confirmed image-type order, starting at `01`. Example:
+Use lowercase file-safe slugs for `platform`, `country`, and `allStyle`. Map country codes as `US_EN -> us`, `MX_ES -> mx`, `CL_ES -> cl`, `CO_ES -> co`, `ZA_EN -> za`; for custom countries, create a conservative file-safe slug from the user's value. `allStyle` is the confirmed style token, or multiple confirmed style tokens joined by `-` if the user explicitly requested a combined style. In customer-reference mode, use `customer-reference` as `allStyle` and the file-safe card name as `imageType`. Use two-digit order numbers in confirmed order, starting at `01`. Example:
 
 `E:\e-commerce\product\Q-020 2PCS音频线\output\mercadolibre-mx-stylehero-style6\01-Hero-stylehero.png`
 
