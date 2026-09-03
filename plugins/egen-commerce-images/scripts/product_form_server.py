@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import mimetypes
 import os
@@ -28,6 +29,10 @@ DEFAULT_OUTPUT_DIR = (
     / "tasks"
 )
 SCHEMA_VERSION = 2
+IMAGE_EXTENSIONS = {".jpeg", ".jpg", ".png", ".webp"}
+PRODUCT_IMAGE_LIMIT = 50
+STYLE_IMAGE_LIMIT = 30
+MAX_SAVE_BODY_BYTES = 1_000_000
 
 
 def utc_now() -> str:
@@ -78,10 +83,44 @@ def content_type_for(path: Path) -> str:
     return guessed or "application/octet-stream"
 
 
+def scan_image_directory(directory: Path, limit: int) -> dict[str, Any]:
+    """Return supported images directly inside a user-selected material directory."""
+    if limit < 1:
+        raise ValueError("limit_must_be_positive")
+
+    resolved_directory = directory.expanduser().resolve()
+    if not resolved_directory.is_dir():
+        raise ValueError("directory_not_found")
+
+    candidates = sorted(
+        (
+            path
+            for path in resolved_directory.iterdir()
+            if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+        ),
+        key=lambda path: path.name.casefold(),
+    )
+    selected = candidates[:limit]
+    return {
+        "directory": str(resolved_directory),
+        "images": [
+            {
+                "id": uuid.uuid4().hex,
+                "name": path.name,
+                "path": str(path),
+                "mimeType": content_type_for(path),
+            }
+            for path in selected
+        ],
+        "truncated": len(candidates) > limit,
+    }
+
+
 def make_handler(
     output_dir: Path,
     task_id: str,
     form_started_at: str,
+    task_token: str,
 ) -> type[BaseHTTPRequestHandler]:
     saved_condition = threading.Condition()
     saved_state: dict[str, Any] = {
@@ -90,6 +129,7 @@ def make_handler(
         "payload": None,
         "savedAt": None,
     }
+    material_paths: dict[str, Path] = {}
 
     class ProductFormHandler(BaseHTTPRequestHandler):
         server_version = "EgenProductForm/0.6.0"
@@ -106,9 +146,11 @@ def make_handler(
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header(
+                "Content-Security-Policy",
+                "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'",
+            )
             self.end_headers()
             self.wfile.write(body)
 
@@ -118,6 +160,10 @@ def make_handler(
 
         def _schedule_shutdown(self) -> None:
             threading.Thread(target=self.server.shutdown, daemon=True).start()
+
+        def _has_task_token(self, query: dict[str, list[str]]) -> bool:
+            supplied_token = (query.get("token") or [""])[0]
+            return hmac.compare_digest(supplied_token, task_token)
 
         def _current_saved_response(self) -> dict[str, Any] | None:
             if not saved_state["payload"] or not saved_state["jsonPath"]:
@@ -169,7 +215,63 @@ def make_handler(
                         "schemaVersion": SCHEMA_VERSION,
                         "taskId": task_id,
                         "formStartedAt": form_started_at,
+                        "taskToken": task_token,
                     },
+                )
+                return
+
+            if path == "/scan":
+                query = parse_qs(parsed_url.query)
+                if not self._has_task_token(query):
+                    self._send_json(403, {"error": "forbidden"})
+                    return
+                kind = (query.get("kind") or [""])[0]
+                directory = (query.get("directory") or [""])[0]
+                limits = {"product": PRODUCT_IMAGE_LIMIT, "style": STYLE_IMAGE_LIMIT}
+                if kind not in limits or not directory or len(directory) > 4096:
+                    self._send_json(400, {"error": "invalid_scan_request"})
+                    return
+                try:
+                    scan_result = scan_image_directory(Path(directory), limits[kind])
+                except (OSError, ValueError):
+                    self._send_json(400, {"error": "invalid_material_directory"})
+                    return
+
+                images = []
+                for image in scan_result["images"]:
+                    material_paths[image["id"]] = Path(image["path"])
+                    images.append(
+                        {
+                            "id": image["id"],
+                            "name": image["name"],
+                            "mimeType": image["mimeType"],
+                            "previewUrl": f"/material?id={image['id']}&token={task_token}",
+                        }
+                    )
+                self._send_json(
+                    200,
+                    {
+                        "directory": scan_result["directory"],
+                        "images": images,
+                        "truncated": scan_result["truncated"],
+                    },
+                )
+                return
+
+            if path == "/material":
+                query = parse_qs(parsed_url.query)
+                if not self._has_task_token(query):
+                    self._send_json(403, {"error": "forbidden"})
+                    return
+                material_id = (query.get("id") or [""])[0]
+                material_path = material_paths.get(material_id)
+                if material_path is None or not material_path.is_file():
+                    self._send_json(404, {"error": "material_not_found"})
+                    return
+                self._send_bytes(
+                    200,
+                    material_path.read_bytes(),
+                    content_type_for(material_path),
                 )
                 return
 
@@ -244,6 +346,9 @@ def make_handler(
                 return
 
             content_length = int(self.headers.get("Content-Length", "0") or "0")
+            if content_length < 1 or content_length > MAX_SAVE_BODY_BYTES:
+                self._send_json(400, {"error": "invalid_content_length"})
+                return
             raw_body = self.rfile.read(content_length)
             try:
                 payload = json.loads(raw_body.decode("utf-8"))
@@ -296,8 +401,9 @@ def bind_server(
     output_dir: Path,
     task_id: str,
     form_started_at: str,
+    task_token: str,
 ) -> ThreadingHTTPServer:
-    handler = make_handler(output_dir, task_id, form_started_at)
+    handler = make_handler(output_dir, task_id, form_started_at, task_token)
     if port == 0:
         return ThreadingHTTPServer((host, 0), handler)
 
@@ -324,9 +430,17 @@ def main() -> int:
     args = parse_args()
     output_dir = args.output_dir.expanduser().resolve()
     task_id = uuid.uuid4().hex[:8]
+    task_token = uuid.uuid4().hex + uuid.uuid4().hex
     form_started_at = utc_now()
     try:
-        server = bind_server(args.host, args.port, output_dir, task_id, form_started_at)
+        server = bind_server(
+            args.host,
+            args.port,
+            output_dir,
+            task_id,
+            form_started_at,
+            task_token,
+        )
     except (OSError, RuntimeError) as exc:
         print(
             f"ERROR: could not start local form server on {args.host}:{args.port}: {exc}",
