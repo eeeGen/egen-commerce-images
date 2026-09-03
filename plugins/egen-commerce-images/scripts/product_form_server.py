@@ -28,7 +28,7 @@ DEFAULT_OUTPUT_DIR = (
     / "egen-commerce-images"
     / "tasks"
 )
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 IMAGE_EXTENSIONS = {".jpeg", ".jpg", ".png", ".webp"}
 PRODUCT_IMAGE_LIMIT = 50
 STYLE_IMAGE_LIMIT = 30
@@ -116,6 +116,54 @@ def scan_image_directory(directory: Path, limit: int) -> dict[str, Any]:
     }
 
 
+def resolve_customer_reference_workflow(
+    payload: dict[str, Any],
+    material_catalog: dict[str, dict[str, str]],
+) -> dict[str, Any]:
+    """Resolve selected material IDs without accepting browser-supplied file paths."""
+    task_options = payload.get("taskOptions")
+    if not isinstance(task_options, dict) or task_options.get("styleSource") != "customer-reference":
+        return payload
+
+    workflow = payload.get("referenceWorkflow")
+    if not isinstance(workflow, dict):
+        raise ValueError("missing_reference_workflow")
+
+    def require_material(material_id: Any, kind: str) -> dict[str, str]:
+        if not isinstance(material_id, str) or not material_id:
+            raise ValueError("missing_material_id")
+        material = material_catalog.get(material_id)
+        if material is None or material.get("kind") != kind:
+            raise ValueError("invalid_material_id")
+        return material
+
+    color_master = require_material(workflow.get("colorMasterId"), "style")
+    raw_outputs = workflow.get("outputs")
+    if not isinstance(raw_outputs, list) or not raw_outputs:
+        raise ValueError("missing_output_cards")
+
+    resolved_outputs: list[dict[str, Any]] = []
+    for output in raw_outputs:
+        if not isinstance(output, dict):
+            raise ValueError("invalid_output_card")
+        product_image_ids = output.get("productImageIds")
+        if not isinstance(product_image_ids, list) or not 1 <= len(product_image_ids) <= 4:
+            raise ValueError("invalid_product_image_count")
+        product_images = [require_material(material_id, "product") for material_id in product_image_ids]
+        style_reference = require_material(output.get("styleReferenceId"), "style")
+        resolved_output = dict(output)
+        resolved_output["productImagePaths"] = [image["path"] for image in product_images]
+        resolved_output["styleReferencePath"] = style_reference["path"]
+        resolved_outputs.append(resolved_output)
+
+    resolved_payload = dict(payload)
+    resolved_workflow = dict(workflow)
+    resolved_workflow["colorMasterPath"] = color_master["path"]
+    resolved_workflow["outputs"] = resolved_outputs
+    resolved_payload["referenceWorkflow"] = resolved_workflow
+    return resolved_payload
+
+
 def make_handler(
     output_dir: Path,
     task_id: str,
@@ -129,7 +177,7 @@ def make_handler(
         "payload": None,
         "savedAt": None,
     }
-    material_paths: dict[str, Path] = {}
+    material_catalog: dict[str, dict[str, str]] = {}
 
     class ProductFormHandler(BaseHTTPRequestHandler):
         server_version = "EgenProductForm/0.6.0"
@@ -239,7 +287,11 @@ def make_handler(
 
                 images = []
                 for image in scan_result["images"]:
-                    material_paths[image["id"]] = Path(image["path"])
+                    material_catalog[image["id"]] = {
+                        "kind": kind,
+                        "name": image["name"],
+                        "path": image["path"],
+                    }
                     images.append(
                         {
                             "id": image["id"],
@@ -264,7 +316,8 @@ def make_handler(
                     self._send_json(403, {"error": "forbidden"})
                     return
                 material_id = (query.get("id") or [""])[0]
-                material_path = material_paths.get(material_id)
+                material = material_catalog.get(material_id)
+                material_path = Path(material["path"]) if material else None
                 if material_path is None or not material_path.is_file():
                     self._send_json(404, {"error": "material_not_found"})
                     return
@@ -358,6 +411,12 @@ def make_handler(
 
             if not isinstance(payload, dict):
                 self._send_json(400, {"error": "payload_must_be_object"})
+                return
+
+            try:
+                payload = resolve_customer_reference_workflow(payload, material_catalog)
+            except ValueError:
+                self._send_json(400, {"error": "invalid_reference_workflow"})
                 return
 
             output_dir.mkdir(parents=True, exist_ok=True)

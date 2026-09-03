@@ -571,6 +571,70 @@
       color: var(--muted);
     }
 
+    .material-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .material-tile {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-control);
+      background: var(--surface-chrome);
+    }
+
+    .material-tile img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: var(--surface);
+    }
+
+    .material-tile span {
+      display: block;
+      padding: 6px 8px;
+      overflow: hidden;
+      color: var(--soft);
+      font-size: 10px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .output-cards {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .output-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-control);
+      background: rgba(7, 20, 22, 0.34);
+    }
+
+    .output-card header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .output-card h3 {
+      margin: 0;
+      color: var(--soft);
+      font-size: 12px;
+    }
+
+    .output-card .checks {
+      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    }
+
     @media (max-width: 1100px) {
       .app-shell {
         grid-template-columns: 190px minmax(0, 1fr);
@@ -809,7 +873,7 @@
             <h2 id="taskTitle">任务选项</h2>
           </div>
         </div>
-        <p class="panel-note">国家、平台、style、比例和数量是生成分析计划前的必填项。</p>
+        <p class="panel-note">选择内置 style，或用客户本地目录中的产品实拍和风格参考，建立逐图生成配方。</p>
         <div class="grid">
           <div class="field">
             <label for="countryLanguage">目标国家/语言</label>
@@ -842,6 +906,13 @@
             <input id="platformOther" name="platformOther" autocomplete="off">
           </div>
           <div class="field">
+            <label for="styleSource">风格来源</label>
+            <select id="styleSource" name="styleSource" required>
+              <option value="builtin">内置风格</option>
+              <option value="customer-reference">客户参考风格</option>
+            </select>
+          </div>
+          <div class="field" id="builtInStyleField">
             <label for="knowledgeStyle">knowledge style</label>
             <select id="knowledgeStyle" name="knowledgeStyle" required>
               <option value="">请选择</option>
@@ -855,7 +926,7 @@
               <option value="stylehero">stylehero</option>
             </select>
           </div>
-          <fieldset>
+          <fieldset id="builtInImageTypesField">
             <legend>图片类型</legend>
             <p class="hint">可多选；勾选“全选”会自动选择全部标准类型。</p>
             <div class="checks">
@@ -889,7 +960,7 @@
               <option value="9:16">9:16</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="builtInQuantityField">
             <label for="quantityPerType">每类数量</label>
             <select id="quantityPerType" name="quantityPerType" required>
               <option value="">请选择</option>
@@ -911,6 +982,41 @@
             <label for="extraRequirements">额外要求内容</label>
             <textarea id="extraRequirements" name="extraRequirements"></textarea>
           </div>
+          <section class="field full" id="customerReferencePanel" hidden aria-labelledby="customerReferenceTitle">
+            <h3 id="customerReferenceTitle">客户参考风格配方</h3>
+            <p class="hint">填写本地目录后扫描。产品实拍可全部保留；每张输出卡片只能手选 1–4 张产品实拍和 1 张风格参考。</p>
+            <div class="grid">
+              <div class="field full">
+                <label for="productMaterialsPath">产品实拍目录</label>
+                <div class="checks">
+                  <input id="productMaterialsPath" autocomplete="off" placeholder="例如 E:\\products\\kettle\\images">
+                  <button class="secondary compact" type="button" id="scanProductMaterials">扫描产品实拍</button>
+                </div>
+                <div id="productMaterialGrid" class="material-grid" role="status" aria-live="polite"></div>
+              </div>
+              <div class="field full">
+                <label for="styleMaterialsPath">风格参考目录</label>
+                <div class="checks">
+                  <input id="styleMaterialsPath" autocomplete="off" placeholder="例如 E:\\references\\autumn-campaign">
+                  <button class="secondary compact" type="button" id="scanStyleMaterials">扫描风格参考</button>
+                </div>
+                <div id="styleMaterialGrid" class="material-grid" role="status" aria-live="polite"></div>
+              </div>
+              <div class="field">
+                <label for="colorMasterId">全局色彩母版</label>
+                <select id="colorMasterId" disabled>
+                  <option value="">请先扫描风格参考</option>
+                </select>
+                <p class="hint">客户手动选择；它只提供跨卡片的调色方向。</p>
+              </div>
+              <div class="field">
+                <label>输出卡片</label>
+                <button class="secondary" type="button" id="addOutputCard">新增输出卡片</button>
+                <p class="hint">卡片不受 Hero、Feature 等固定类型限制。</p>
+              </div>
+            </div>
+            <div id="outputCards" class="output-cards" role="list" aria-live="polite"></div>
+          </section>
         </div>
       </section>
       </div>
@@ -938,6 +1044,21 @@
     const splitProductInfo = document.querySelector("#splitProductInfo");
     const selectAllTypes = document.querySelector("#selectAllTypes");
     const imageTypeInputs = Array.from(document.querySelectorAll("input[name='imageTypes']"));
+    const styleSource = document.querySelector("#styleSource");
+    const builtInStyleField = document.querySelector("#builtInStyleField");
+    const builtInImageTypesField = document.querySelector("#builtInImageTypesField");
+    const builtInQuantityField = document.querySelector("#builtInQuantityField");
+    const knowledgeStyle = document.querySelector("#knowledgeStyle");
+    const quantityPerType = document.querySelector("#quantityPerType");
+    const customerReferencePanel = document.querySelector("#customerReferencePanel");
+    const productMaterialsPath = document.querySelector("#productMaterialsPath");
+    const styleMaterialsPath = document.querySelector("#styleMaterialsPath");
+    const productMaterialGrid = document.querySelector("#productMaterialGrid");
+    const styleMaterialGrid = document.querySelector("#styleMaterialGrid");
+    const colorMasterId = document.querySelector("#colorMasterId");
+    const outputCards = document.querySelector("#outputCards");
+    const materials = { product: [], style: [] };
+    let taskToken = "";
 
     function setStatus(message, kind = "") {
       statusEl.className = `statusbar ${kind}`.trim();
@@ -969,6 +1090,176 @@
         .map((input) => input.value);
     }
 
+    function isCustomerReferenceMode() {
+      return styleSource.value === "customer-reference";
+    }
+
+    function replaceOptions(select, images, placeholder) {
+      const previousValue = select.value;
+      select.replaceChildren(new Option(placeholder, ""));
+      images.forEach((image) => select.add(new Option(image.name, image.id)));
+      select.value = images.some((image) => image.id === previousValue) ? previousValue : "";
+    }
+
+    function renderMaterialGrid(kind) {
+      const grid = kind === "product" ? productMaterialGrid : styleMaterialGrid;
+      grid.replaceChildren();
+      if (materials[kind].length === 0) {
+        grid.textContent = "尚未扫描素材。";
+        return;
+      }
+      materials[kind].forEach((image) => {
+        const tile = document.createElement("div");
+        tile.className = "material-tile";
+        const preview = document.createElement("img");
+        preview.src = image.previewUrl;
+        preview.alt = image.name;
+        const label = document.createElement("span");
+        label.textContent = image.name;
+        label.title = image.name;
+        tile.append(preview, label);
+        grid.append(tile);
+      });
+    }
+
+    function refreshOutputCardMaterials() {
+      outputCards.querySelectorAll(".output-card").forEach((card) => {
+        const selectedProductIds = new Set(
+          Array.from(card.querySelectorAll("input[data-product-image]:checked"), (input) => input.value)
+        );
+        const productChoices = card.querySelector("[data-product-choices]");
+        productChoices.replaceChildren();
+        materials.product.forEach((image) => {
+          const label = document.createElement("label");
+          label.className = "check";
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.value = image.id;
+          input.dataset.productImage = "true";
+          input.checked = selectedProductIds.has(image.id);
+          label.append(input, document.createTextNode(image.name));
+          productChoices.append(label);
+        });
+        replaceOptions(card.querySelector("[data-style-reference]"), materials.style, "请选择风格参考");
+      });
+    }
+
+    function renderColorMasterOptions() {
+      colorMasterId.disabled = materials.style.length === 0;
+      replaceOptions(colorMasterId, materials.style, "请选择全局色彩母版");
+    }
+
+    async function loadTaskToken() {
+      const response = await fetch("/config");
+      if (!response.ok) {
+        throw new Error("无法读取本地任务配置");
+      }
+      const config = await response.json();
+      taskToken = config.taskToken || "";
+      if (!taskToken) {
+        throw new Error("本地任务令牌不可用");
+      }
+    }
+
+    async function scanMaterials(kind) {
+      const pathInput = kind === "product" ? productMaterialsPath : styleMaterialsPath;
+      const directory = pathInput.value.trim();
+      if (!directory) {
+        setStatus("请先填写本地素材目录。", "error");
+        return;
+      }
+      try {
+        if (!taskToken) {
+          await loadTaskToken();
+        }
+        setStatus("正在扫描本地素材...");
+        const query = new URLSearchParams({ kind, directory, token: taskToken });
+        const response = await fetch(`/scan?${query.toString()}`);
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "扫描失败");
+        }
+        materials[kind] = result.images;
+        renderMaterialGrid(kind);
+        if (kind === "style") {
+          renderColorMasterOptions();
+        }
+        refreshOutputCardMaterials();
+        setStatus(result.truncated ? "素材已扫描；超过展示上限的图片未显示。" : "素材已扫描。", "ok");
+      } catch (error) {
+        setStatus(`扫描失败：${error.message}`, "error");
+      }
+    }
+
+    function addOutputCard() {
+      if (materials.product.length === 0 || materials.style.length === 0) {
+        setStatus("请先扫描产品实拍和风格参考，再新增输出卡片。", "error");
+        return;
+      }
+      const card = document.createElement("article");
+      card.className = "output-card";
+      card.setAttribute("role", "listitem");
+      const number = outputCards.children.length + 1;
+      const header = document.createElement("header");
+      const title = document.createElement("h3");
+      title.textContent = `输出卡片 ${number}`;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "secondary compact";
+      remove.textContent = "移除";
+      remove.addEventListener("click", () => card.remove());
+      header.append(title, remove);
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      const nameField = document.createElement("div");
+      nameField.className = "field";
+      nameField.innerHTML = '<label>卡片名称</label><input data-output-name autocomplete="off" placeholder="例如：厨房晨光场景">';
+      const styleField = document.createElement("div");
+      styleField.className = "field";
+      const styleLabel = document.createElement("label");
+      styleLabel.textContent = "本卡片风格参考";
+      const styleSelect = document.createElement("select");
+      styleSelect.dataset.styleReference = "true";
+      replaceOptions(styleSelect, materials.style, "请选择风格参考");
+      styleField.append(styleLabel, styleSelect);
+      const intentField = document.createElement("div");
+      intentField.className = "field full";
+      intentField.innerHTML = '<label>要表达的信息 / 卖点</label><textarea data-output-intent placeholder="填写真实卖点或信息；Codex 会在生成配方总览中起草本地化文案。"></textarea>';
+      const productField = document.createElement("fieldset");
+      productField.className = "field full";
+      const legend = document.createElement("legend");
+      legend.textContent = "本卡片产品实拍（必须手选 1–4 张）";
+      const choices = document.createElement("div");
+      choices.className = "checks";
+      choices.dataset.productChoices = "true";
+      productField.append(legend, choices);
+      const ratioField = document.createElement("div");
+      ratioField.className = "field";
+      ratioField.innerHTML = '<label>比例覆写</label><select data-ratio-override><option value="">使用全局默认比例</option><option value="1:1">1:1</option><option value="4:5">4:5</option><option value="3:4">3:4</option><option value="16:9">16:9</option><option value="9:16">9:16</option></select>';
+      const sceneField = document.createElement("div");
+      sceneField.className = "field";
+      sceneField.innerHTML = '<label>色彩策略</label><select data-scene-priority><option value="auto">自动：可在总览确认时覆写</option><option value="master">母版优先</option><option value="scene">场景优先</option></select>';
+      const copyField = document.createElement("div");
+      copyField.className = "field full";
+      copyField.innerHTML = '<label>文案覆写（可选）</label><textarea data-copy-override placeholder="留空则由 Codex 基于真实卖点和目标语言起草。"></textarea>';
+      grid.append(nameField, styleField, intentField, productField, ratioField, sceneField, copyField);
+      card.append(header, grid);
+      outputCards.append(card);
+      refreshOutputCardMaterials();
+    }
+
+    function readOutputCards() {
+      return Array.from(outputCards.querySelectorAll(".output-card"), (card) => ({
+        name: card.querySelector("[data-output-name]").value.trim(),
+        intent: card.querySelector("[data-output-intent]").value.trim(),
+        productImageIds: Array.from(card.querySelectorAll("input[data-product-image]:checked"), (input) => input.value),
+        styleReferenceId: card.querySelector("[data-style-reference]").value,
+        ratioOverride: card.querySelector("[data-ratio-override]").value,
+        colorPriority: card.querySelector("[data-scene-priority]").value,
+        copyOverride: card.querySelector("[data-copy-override]").value.trim()
+      }));
+    }
+
     function buildPayload() {
       return {
         productInfo: {
@@ -991,6 +1282,7 @@
           countryLanguageOther: fieldValue("countryLanguageOther"),
           platform: fieldValue("platform"),
           platformOther: fieldValue("platformOther"),
+          styleSource: fieldValue("styleSource") || "builtin",
           knowledgeStyle: fieldValue("knowledgeStyle"),
           imageTypes: selectedImageTypes(),
           imageTypesOther: fieldValue("imageTypesOther"),
@@ -999,8 +1291,14 @@
           extraRequirementMode: fieldValue("extraRequirementMode") || "none",
           extraRequirements: fieldValue("extraRequirements")
         },
+        referenceWorkflow: isCustomerReferenceMode() ? {
+          productMaterialsDirectory: productMaterialsPath.value.trim(),
+          styleMaterialsDirectory: styleMaterialsPath.value.trim(),
+          colorMasterId: colorMasterId.value,
+          outputs: readOutputCards()
+        } : null,
         meta: {
-          schemaVersion: 1
+          schemaVersion: 3
         }
       };
     }
@@ -1029,6 +1327,16 @@
         extraRequirements,
         extraRequirementMode.value !== "custom"
       );
+      const customerReference = isCustomerReferenceMode();
+      builtInStyleField.hidden = customerReference;
+      builtInImageTypesField.hidden = customerReference;
+      builtInQuantityField.hidden = customerReference;
+      imageTypesOtherField.hidden = customerReference || !imageTypeInputs.some(
+        (input) => input.value === "OTHER" && input.checked
+      );
+      customerReferencePanel.hidden = !customerReference;
+      knowledgeStyle.required = !customerReference;
+      quantityPerType.required = !customerReference;
     }
 
     function fillEmptyField(fieldName, value) {
@@ -1091,8 +1399,12 @@
     });
 
     platform.addEventListener("change", updateConditionalFields);
+    styleSource.addEventListener("change", updateConditionalFields);
     extraRequirementMode.addEventListener("change", updateConditionalFields);
     splitProductInfo.addEventListener("click", splitProductText);
+    document.querySelector("#scanProductMaterials").addEventListener("click", () => scanMaterials("product"));
+    document.querySelector("#scanStyleMaterials").addEventListener("click", () => scanMaterials("style"));
+    document.querySelector("#addOutputCard").addEventListener("click", addOutputCard);
 
     selectAllTypes.addEventListener("change", () => {
       imageTypeInputs
@@ -1119,9 +1431,19 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const payload = buildPayload();
-      if (payload.taskOptions.imageTypes.length === 0) {
+      if (!isCustomerReferenceMode() && payload.taskOptions.imageTypes.length === 0) {
         setStatus("请至少选择一种图片类型。", "error");
         return;
+      }
+      if (isCustomerReferenceMode()) {
+        const workflow = payload.referenceWorkflow;
+        const incompleteCard = workflow.outputs.find(
+          (output) => !output.name || !output.styleReferenceId || output.productImageIds.length < 1 || output.productImageIds.length > 4
+        );
+        if (!workflow.colorMasterId || workflow.outputs.length === 0 || incompleteCard) {
+          setStatus("客户参考模式需要选择色彩母版，并为每张输出填写名称、1–4 张产品实拍和 1 张风格参考。", "error");
+          return;
+        }
       }
 
       setStatus("正在保存...");
@@ -1144,6 +1466,12 @@
     form.addEventListener("reset", () => {
       window.setTimeout(() => {
         ratio.value = "1:1";
+        materials.product = [];
+        materials.style = [];
+        productMaterialGrid.replaceChildren();
+        styleMaterialGrid.replaceChildren();
+        outputCards.replaceChildren();
+        renderColorMasterOptions();
         updateConditionalFields();
         setStatus("尚未保存。");
       }, 0);

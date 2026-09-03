@@ -45,5 +45,60 @@ class ScanImageDirectoryTests(unittest.TestCase):
                 server.scan_image_directory(root / "missing", limit=10)
 
 
+class CustomerReferenceWorkflowTests(unittest.TestCase):
+    def test_resolves_only_selected_material_ids_for_each_output(self) -> None:
+        payload = {
+            "taskOptions": {"styleSource": "customer-reference"},
+            "referenceWorkflow": {
+                "colorMasterId": "style-1",
+                "outputs": [
+                    {
+                        "name": "晨光场景",
+                        "productImageIds": ["product-1", "product-2"],
+                        "styleReferenceId": "style-1",
+                        "ratioOverride": "",
+                    }
+                ],
+            },
+        }
+        material_catalog = {
+            "product-1": {"kind": "product", "name": "front.jpg", "path": "C:/product/front.jpg"},
+            "product-2": {"kind": "product", "name": "side.jpg", "path": "C:/product/side.jpg"},
+            "style-1": {"kind": "style", "name": "scene.jpg", "path": "C:/style/scene.jpg"},
+        }
+
+        resolved = server.resolve_customer_reference_workflow(payload, material_catalog)
+
+        output = resolved["referenceWorkflow"]["outputs"][0]
+        self.assertEqual(output["productImagePaths"], ["C:/product/front.jpg", "C:/product/side.jpg"])
+        self.assertEqual(output["styleReferencePath"], "C:/style/scene.jpg")
+        self.assertEqual(resolved["referenceWorkflow"]["colorMasterPath"], "C:/style/scene.jpg")
+
+    def test_rejects_more_than_four_product_images_for_an_output(self) -> None:
+        payload = {
+            "taskOptions": {"styleSource": "customer-reference"},
+            "referenceWorkflow": {
+                "colorMasterId": "style-1",
+                "outputs": [
+                    {
+                        "name": "过多产品图",
+                        "productImageIds": ["p1", "p2", "p3", "p4", "p5"],
+                        "styleReferenceId": "style-1",
+                    }
+                ],
+            },
+        }
+        material_catalog = {
+            **{
+                f"p{index}": {"kind": "product", "name": f"{index}.jpg", "path": f"C:/{index}.jpg"}
+                for index in range(1, 6)
+            },
+            "style-1": {"kind": "style", "name": "scene.jpg", "path": "C:/style/scene.jpg"},
+        }
+
+        with self.assertRaises(ValueError):
+            server.resolve_customer_reference_workflow(payload, material_catalog)
+
+
 if __name__ == "__main__":
     unittest.main()
