@@ -44,9 +44,12 @@ When choosing a style, first let the user choose one available built-in style pr
 - `style4` -> `references/style-prompts/STYLE4_PROMPTS.md`
 - `style5` -> `references/style-prompts/STYLE5_PROMPTS.md`
 - `style6` -> `references/style-prompts/STYLE6_PROMPTS.md`
+- `style6plus` -> `references/style-prompts/STYLE6PLUS_PROMPTS.md` (Feature validation only; read `STYLE6_PROMPTS.md` first for its inherited visual DNA)
 - `stylehero` -> `references/style-prompts/STYLEhero_PROMPTS.md`
 
 Use the selected style prompt document as the primary style, layout, prompt-structure, and visual-DNA reference for final image generation. If matching `knowledge` images also exist under `E:\e-commerce\knowledge`, they are secondary visual references only. Use only the selected style unless the user explicitly changes it.
+
+`style6plus` is a narrow validation style, not a replacement for `style6`. It supports only the `Feature` image type. For it, first read `STYLE6_PROMPTS.md` for the inherited blue-and-gold visual DNA, then read `STYLE6PLUS_PROMPTS.md` as the authoritative Feature layout, input gate, prompt structure, and acceptance checklist. If a task selects `style6plus` with any image type other than `Feature`, ask the user to select only `Feature` or choose another style before planning.
 
 Within the selected style prompt document, borrow only visual style, composition, information hierarchy, selling-point expression, layout, prompt variables, UI component logic, and design logic. Do not copy any product facts from the style document. If additional matching is useful within the same image type, prefer style sections or examples in this order: same image type, same platform and language, same country/region, same category, similar price band. Briefly state which style/category/type rules were borrowed, without claiming the style document or knowledge library proves any current product fact.
 
@@ -139,7 +142,7 @@ If the startup command returns exit code `124`, if the log does not contain `FOR
 | --- | --- | --- |
 | 目标国家/语言 | 1 美国/英语；2 墨西哥/西班牙语；3 智利/西班牙语；4 哥伦比亚/西班牙语；5 南非/英语；6 其他：请填写 | 待填写 |
 | 目标平台 | 1 Amazon；2 MercadoLibre；3 Takealot；4 其他：请填写 | 待填写 |
-| knowledge style | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero | 待填写 |
+| knowledge style | 1 style1；2 style2；3 style3；4 style4；5 style5；6 style6；7 stylehero；8 style6plus（仅 Feature 验证） | 待填写 |
 | 图片类型 | 1 全选；2 Hero；3 Selling；4 Feature；5 Specs；6 Lifestyle；7 Value；8 Compare；9 Closing；10 CoreA；11 CoreB；12 Guide；13 其他：请填写 | 待填写 |
 | 图片比例 | 1 1:1；2 4:5；3 3:4；4 16:9；5 9:16 | 待填写 |
 | 每类数量 | 1；2；4；6；10 | 待填写 |

@@ -1,5 +1,26 @@
 # Version Update
 
+## v0.7.4 - 2026-09-03
+
+### Summary
+
+Added `style6plus`, a Feature-only validation style that keeps style6 as its visual baseline while replacing the generic Feature layout with an explicit, evidence-gated composition blueprint.
+
+### Changes
+
+- Added `STYLE6PLUS_PROMPTS.md`; it inherits the style6 blue-and-gold visual DNA and defines a fixed Feature composition, required evidence, and a pre-output acceptance checklist.
+- Added `style6plus` to the browser form and fallback style options. The validation style accepts only the `Feature` image type.
+- Kept every existing style prompt, including `STYLE6_PROMPTS.md`, unchanged.
+- Updated the plugin manifest version to `0.7.4`.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `skills/egen-commerce-images/SKILL.md`
+- `skills/egen-commerce-images/references/style-prompts/STYLE6PLUS_PROMPTS.md`
+- `skills/egen-commerce-images/VERSION_UPDATE.md`
+
 ## v0.7.3 - 2026-08-14
 
 ### Summary
