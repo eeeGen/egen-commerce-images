@@ -1,5 +1,28 @@
 # Version Update
 
+## v0.9.0 - 2026-09-08
+
+### Summary
+
+Added two independently selectable style6 branches for like-for-like product-image testing: `style6-v2` is Amazon-oriented and evidence-dense, while `style6-v3` uses a brand-site editorial narrative.
+
+### Changes
+
+- Added `STYLE6_V2_PROMPTS.md` with an 11-image strong-conversion coverage system: verified set overview, single-product proof, multi-angle/spec evidence, functional detail, scenario evidence, comparison, closing, and guide shots.
+- Added `STYLE6_V3_PROMPTS.md` with the same 11-image coverage but a low-UI, layered, brand-site narrative system focused on space, material, natural light, and distinct story moments.
+- Added explicit reference-image roles so multiple product photos calibrate one product rather than automatically becoming a product lineup.
+- Added a set-level Coverage Matrix and anti-repetition rules for both branches, including an A/B contract that locks product facts, references, ratio, localized copy, and image types.
+- Added `style6-v2` and `style6-v3` to the browser form and fallback task table. Existing `style6` and Feature-only `style6plus` remain unchanged.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `skills/egen-commerce-images/SKILL.md`
+- `skills/egen-commerce-images/references/style-prompts/STYLE6_V2_PROMPTS.md`
+- `skills/egen-commerce-images/references/style-prompts/STYLE6_V3_PROMPTS.md`
+- `skills/egen-commerce-images/VERSION_UPDATE.md`
+
 ## v0.8.0 - 2026-09-03
 
 ### Summary
