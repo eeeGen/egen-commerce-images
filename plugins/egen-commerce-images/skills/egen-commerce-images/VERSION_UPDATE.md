@@ -1,5 +1,26 @@
 # Version Update
 
+## v0.10.0 - 2026-09-13
+
+### Summary
+
+Added `style6-v3-2`, a selectable brand-prose narrative branch that keeps style6-v3's factual, low-UI editorial system while requiring a vivid but evidence-bound visual-directing passage for every image.
+
+### Changes
+
+- Added `STYLE6_V3_2_PROMPTS.md` with all 11 standard image types, each pairing a restrained prose-style visual moment with a structured Image Gen prompt skeleton.
+- Kept all visible copy fact-bound and localized: the prose passage directs space, light, material, and action only; it is never rendered as unverified on-image text.
+- Added set, multi-component, and multi-PCS coverage rules: verified multi-item products must include at least one single-item or single-component frame, and a single-item frame must not imply separate sale.
+- Registered `style6-v3-2` in the built-in style map, browser form, and Markdown fallback task table.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `skills/egen-commerce-images/SKILL.md`
+- `skills/egen-commerce-images/references/style-prompts/STYLE6_V3_2_PROMPTS.md`
+- `skills/egen-commerce-images/VERSION_UPDATE.md`
+
 ## v0.9.0 - 2026-09-08
 
 ### Summary
