@@ -46,58 +46,63 @@ class ScanImageDirectoryTests(unittest.TestCase):
 
 
 class CustomerReferenceWorkflowTests(unittest.TestCase):
-    def test_resolves_only_selected_material_ids_for_each_output(self) -> None:
-        payload = {
-            "taskOptions": {"styleSource": "customer-reference"},
-            "referenceWorkflow": {
-                "colorMasterId": "style-1",
-                "outputs": [
-                    {
-                        "name": "晨光场景",
-                        "productImageIds": ["product-1", "product-2"],
-                        "styleReferenceId": "style-1",
-                        "ratioOverride": "",
-                    }
-                ],
-            },
-        }
-        material_catalog = {
-            "product-1": {"kind": "product", "name": "front.jpg", "path": "C:/product/front.jpg"},
-            "product-2": {"kind": "product", "name": "side.jpg", "path": "C:/product/side.jpg"},
-            "style-1": {"kind": "style", "name": "scene.jpg", "path": "C:/style/scene.jpg"},
-        }
-
-        resolved = server.resolve_customer_reference_workflow(payload, material_catalog)
-
-        output = resolved["referenceWorkflow"]["outputs"][0]
-        self.assertEqual(output["productImagePaths"], ["C:/product/front.jpg", "C:/product/side.jpg"])
-        self.assertEqual(output["styleReferencePath"], "C:/style/scene.jpg")
-        self.assertEqual(resolved["referenceWorkflow"]["colorMasterPath"], "C:/style/scene.jpg")
-
-    def test_rejects_more_than_four_product_images_for_an_output(self) -> None:
-        payload = {
-            "taskOptions": {"styleSource": "customer-reference"},
-            "referenceWorkflow": {
-                "colorMasterId": "style-1",
-                "outputs": [
-                    {
-                        "name": "过多产品图",
-                        "productImageIds": ["p1", "p2", "p3", "p4", "p5"],
-                        "styleReferenceId": "style-1",
-                    }
-                ],
-            },
-        }
-        material_catalog = {
+    def setUp(self) -> None:
+        self.catalog = {
             **{
-                f"p{index}": {"kind": "product", "name": f"{index}.jpg", "path": f"C:/{index}.jpg"}
-                for index in range(1, 6)
+                f"p{index}": {"kind": "product", "name": f"{index}.jpg", "path": f"C:/product/{index}.jpg"}
+                for index in range(1, 7)
             },
-            "style-1": {"kind": "style", "name": "scene.jpg", "path": "C:/style/scene.jpg"},
+            "s1": {"kind": "style", "name": "first.jpg", "path": "C:/style/first.jpg"},
+            "s2": {"kind": "style", "name": "second.jpg", "path": "C:/style/second.jpg"},
+            "master": {"kind": "style", "name": "palette.jpg", "path": "C:/style/palette.jpg"},
         }
 
-        with self.assertRaises(ValueError):
-            server.resolve_customer_reference_workflow(payload, material_catalog)
+    def payload(self, **overrides: object) -> dict:
+        workflow = {
+            "productImageIds": ["p1", "p2", "p3", "p4", "p5"],
+            "styleReferenceIds": ["s2", "s1"],
+            "colorMasterId": "master",
+            "colorPriority": "auto",
+        }
+        workflow.update(overrides)
+        return {
+            "taskOptions": {"styleSource": "customer-reference"},
+            "referenceWorkflow": workflow,
+        }
+
+    def test_resolves_all_product_paths_and_ordered_style_paths(self) -> None:
+        payload = self.payload(
+            productImagePaths=["C:/forged-product.jpg"],
+            styleReferencePaths=["C:/forged-style.jpg"],
+            colorMasterPath="C:/forged-master.jpg",
+        )
+        resolved = server.resolve_customer_reference_workflow(payload, self.catalog)
+        workflow = resolved["referenceWorkflow"]
+        self.assertEqual(workflow["productImagePaths"], [f"C:/product/{index}.jpg" for index in range(1, 6)])
+        self.assertEqual(workflow["styleReferencePaths"], ["C:/style/second.jpg", "C:/style/first.jpg"])
+        self.assertEqual(workflow["colorMasterPath"], "C:/style/palette.jpg")
+        self.assertNotIn("C:/style/palette.jpg", workflow["styleReferencePaths"])
+
+    def test_rejects_missing_duplicate_or_wrong_kind_materials(self) -> None:
+        invalid_workflows = [
+            {"productImageIds": []},
+            {"styleReferenceIds": []},
+            {"colorMasterId": ""},
+            {"productImageIds": ["p1", "p1"]},
+            {"styleReferenceIds": ["s1", "s1"]},
+            {"productImageIds": ["s1"]},
+            {"styleReferenceIds": ["p1"]},
+            {"colorMasterId": "p1"},
+            {"styleReferenceIds": ["unknown"]},
+            {"colorPriority": "invalid"},
+        ]
+        for overrides in invalid_workflows:
+            with self.subTest(overrides=overrides), self.assertRaises(ValueError):
+                server.resolve_customer_reference_workflow(self.payload(**overrides), self.catalog)
+
+    def test_builtin_payload_is_unchanged(self) -> None:
+        payload = {"taskOptions": {"styleSource": "builtin"}, "referenceWorkflow": None}
+        self.assertIs(server.resolve_customer_reference_workflow(payload, self.catalog), payload)
 
 
 if __name__ == "__main__":

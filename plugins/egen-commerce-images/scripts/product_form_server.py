@@ -28,7 +28,7 @@ DEFAULT_OUTPUT_DIR = (
     / "egen-commerce-images"
     / "tasks"
 )
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 IMAGE_EXTENSIONS = {".jpeg", ".jpg", ".png", ".webp"}
 PRODUCT_IMAGE_LIMIT = 50
 STYLE_IMAGE_LIMIT = 30
@@ -137,29 +137,33 @@ def resolve_customer_reference_workflow(
             raise ValueError("invalid_material_id")
         return material
 
-    color_master = require_material(workflow.get("colorMasterId"), "style")
-    raw_outputs = workflow.get("outputs")
-    if not isinstance(raw_outputs, list) or not raw_outputs:
-        raise ValueError("missing_output_cards")
+    def require_materials(material_ids: Any, kind: str) -> list[dict[str, str]]:
+        if not isinstance(material_ids, list) or not material_ids:
+            raise ValueError("missing_material_ids")
+        materials = [require_material(material_id, kind) for material_id in material_ids]
+        if len({material_id for material_id in material_ids}) != len(material_ids):
+            raise ValueError("duplicate_material_ids")
+        return materials
 
-    resolved_outputs: list[dict[str, Any]] = []
-    for output in raw_outputs:
-        if not isinstance(output, dict):
-            raise ValueError("invalid_output_card")
-        product_image_ids = output.get("productImageIds")
-        if not isinstance(product_image_ids, list) or not 1 <= len(product_image_ids) <= 4:
-            raise ValueError("invalid_product_image_count")
-        product_images = [require_material(material_id, "product") for material_id in product_image_ids]
-        style_reference = require_material(output.get("styleReferenceId"), "style")
-        resolved_output = dict(output)
-        resolved_output["productImagePaths"] = [image["path"] for image in product_images]
-        resolved_output["styleReferencePath"] = style_reference["path"]
-        resolved_outputs.append(resolved_output)
+    product_images = require_materials(workflow.get("productImageIds"), "product")
+    style_references = require_materials(workflow.get("styleReferenceIds"), "style")
+    color_master = require_material(workflow.get("colorMasterId"), "style")
+    color_priority = workflow.get("colorPriority")
+    if color_priority not in {"auto", "master", "scene"}:
+        raise ValueError("invalid_color_priority")
 
     resolved_payload = dict(payload)
-    resolved_workflow = dict(workflow)
-    resolved_workflow["colorMasterPath"] = color_master["path"]
-    resolved_workflow["outputs"] = resolved_outputs
+    resolved_workflow = {
+        "productMaterialsDirectory": workflow.get("productMaterialsDirectory", ""),
+        "styleMaterialsDirectory": workflow.get("styleMaterialsDirectory", ""),
+        "productImageIds": workflow["productImageIds"],
+        "styleReferenceIds": workflow["styleReferenceIds"],
+        "colorMasterId": workflow["colorMasterId"],
+        "colorPriority": color_priority,
+        "productImagePaths": [image["path"] for image in product_images],
+        "styleReferencePaths": [image["path"] for image in style_references],
+        "colorMasterPath": color_master["path"],
+    }
     resolved_payload["referenceWorkflow"] = resolved_workflow
     return resolved_payload
 

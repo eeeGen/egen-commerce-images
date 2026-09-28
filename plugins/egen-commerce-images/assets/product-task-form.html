@@ -578,12 +578,33 @@
       margin-top: 8px;
     }
 
-    .material-tile {
+    .material-item {
       min-width: 0;
+    }
+
+    .material-tile {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      padding: 0;
       overflow: hidden;
       border: 1px solid var(--border);
       border-radius: var(--radius-control);
       background: var(--surface-chrome);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .material-tile[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--selection);
+      box-shadow: 0 0 0 2px rgba(54, 244, 164, 0.2);
+    }
+
+    .material-tile:focus-visible,
+    .master-button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     .material-tile img {
@@ -604,35 +625,14 @@
       white-space: nowrap;
     }
 
-    .output-cards {
-      display: grid;
-      gap: 12px;
-      margin-top: 10px;
+    .master-button {
+      width: 100%;
+      margin-top: 5px;
     }
 
-    .output-card {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-control);
-      background: rgba(7, 20, 22, 0.34);
-    }
-
-    .output-card header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .output-card h3 {
-      margin: 0;
-      color: var(--soft);
-      font-size: 12px;
-    }
-
-    .output-card .checks {
-      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    .master-button[aria-pressed="true"] {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     @media (max-width: 1100px) {
@@ -987,38 +987,38 @@
           </div>
           <section class="field full" id="customerReferencePanel" hidden aria-labelledby="customerReferenceTitle">
             <h3 id="customerReferenceTitle">客户参考风格配方</h3>
-            <p class="hint">填写本地目录后扫描。产品实拍可全部保留；每张输出卡片只能手选 1–4 张产品实拍和 1 张风格参考。</p>
+            <p class="hint">先点击图片选好所有外形参考图，再点击要逐张仿照的图片。每张仿照图生成一张，共用同一组外形参考图。</p>
             <div class="grid">
               <div class="field full">
-                <label for="productMaterialsPath">产品实拍目录</label>
+                <label for="productMaterialsPath">第 1 步：外形参考图目录</label>
                 <div class="checks">
                   <input id="productMaterialsPath" autocomplete="off" placeholder="例如 E:\\products\\kettle\\images">
                   <button class="secondary compact" type="button" id="scanProductMaterials">扫描产品实拍</button>
                 </div>
-                <div id="productMaterialGrid" class="material-grid" role="status" aria-live="polite"></div>
+                <p id="productSelectionSummary" class="hint" aria-live="polite">尚未选择外形参考图。</p>
+                <div id="productMaterialGrid" class="material-grid" role="group" aria-label="外形参考图"></div>
               </div>
               <div class="field full">
-                <label for="styleMaterialsPath">风格参考目录</label>
+                <label for="styleMaterialsPath">第 2 步：仿照图目录</label>
                 <div class="checks">
                   <input id="styleMaterialsPath" autocomplete="off" placeholder="例如 E:\\references\\autumn-campaign">
                   <button class="secondary compact" type="button" id="scanStyleMaterials">扫描风格参考</button>
                 </div>
-                <div id="styleMaterialGrid" class="material-grid" role="status" aria-live="polite"></div>
+                <p id="styleSelectionSummary" class="hint" aria-live="polite">尚未选择仿照图。</p>
+                <div id="styleMaterialGrid" class="material-grid" role="group" aria-label="仿照图与色彩母版"></div>
               </div>
               <div class="field">
-                <label for="colorMasterId">全局色彩母版</label>
-                <select id="colorMasterId" disabled>
-                  <option value="">请先扫描风格参考</option>
+                <label for="colorPriority">全局色彩策略</label>
+                <select id="colorPriority">
+                  <option value="auto" selected>自动：总览确认时确定</option>
+                  <option value="master">母版优先</option>
+                  <option value="scene">仿照图场景优先</option>
                 </select>
-                <p class="hint">客户手动选择；它只提供跨卡片的调色方向。</p>
               </div>
-              <div class="field">
-                <label>输出卡片</label>
-                <button class="secondary" type="button" id="addOutputCard">新增输出卡片</button>
-                <p class="hint">卡片不受 Hero、Feature 等固定类型限制。</p>
+              <div class="field full">
+                <p id="colorMasterSummary" class="hint" aria-live="polite">请在风格图片下点击“设为色彩母版”；母版可以不在仿照清单中。</p>
               </div>
             </div>
-            <div id="outputCards" class="output-cards" role="list" aria-live="polite"></div>
           </section>
         </div>
       </section>
@@ -1058,9 +1058,13 @@
     const styleMaterialsPath = document.querySelector("#styleMaterialsPath");
     const productMaterialGrid = document.querySelector("#productMaterialGrid");
     const styleMaterialGrid = document.querySelector("#styleMaterialGrid");
-    const colorMasterId = document.querySelector("#colorMasterId");
-    const outputCards = document.querySelector("#outputCards");
+    const colorPriority = document.querySelector("#colorPriority");
+    const colorMasterSummary = document.querySelector("#colorMasterSummary");
+    const productSelectionSummary = document.querySelector("#productSelectionSummary");
+    const styleSelectionSummary = document.querySelector("#styleSelectionSummary");
     const materials = { product: [], style: [] };
+    const selectedMaterialIds = { product: [], style: [] };
+    let colorMasterId = "";
     let taskToken = "";
 
     function setStatus(message, kind = "") {
@@ -1097,59 +1101,71 @@
       return styleSource.value === "customer-reference";
     }
 
-    function replaceOptions(select, images, placeholder) {
-      const previousValue = select.value;
-      select.replaceChildren(new Option(placeholder, ""));
-      images.forEach((image) => select.add(new Option(image.name, image.id)));
-      select.value = images.some((image) => image.id === previousValue) ? previousValue : "";
-    }
-
     function renderMaterialGrid(kind) {
       const grid = kind === "product" ? productMaterialGrid : styleMaterialGrid;
       grid.replaceChildren();
       if (materials[kind].length === 0) {
         grid.textContent = "尚未扫描素材。";
-        return;
       }
       materials[kind].forEach((image) => {
-        const tile = document.createElement("div");
+        const item = document.createElement("div");
+        item.className = "material-item";
+        const tile = document.createElement("button");
+        tile.type = "button";
         tile.className = "material-tile";
+        tile.dataset.materialId = image.id;
+        const selectionIndex = selectedMaterialIds[kind].indexOf(image.id);
+        tile.setAttribute("aria-pressed", String(selectionIndex !== -1));
+        tile.setAttribute("aria-label", `${selectionIndex === -1 ? "选择" : "取消选择"}${kind === "product" ? "外形参考图" : "仿照图"} ${image.name}${selectionIndex === -1 ? "" : `，顺序 ${selectionIndex + 1}`}`);
         const preview = document.createElement("img");
         preview.src = image.previewUrl;
         preview.alt = image.name;
         const label = document.createElement("span");
-        label.textContent = image.name;
+        label.textContent = `${selectionIndex === -1 ? "" : `${selectionIndex + 1}. `}${image.name}`;
         label.title = image.name;
         tile.append(preview, label);
-        grid.append(tile);
-      });
-    }
-
-    function refreshOutputCardMaterials() {
-      outputCards.querySelectorAll(".output-card").forEach((card) => {
-        const selectedProductIds = new Set(
-          Array.from(card.querySelectorAll("input[data-product-image]:checked"), (input) => input.value)
-        );
-        const productChoices = card.querySelector("[data-product-choices]");
-        productChoices.replaceChildren();
-        materials.product.forEach((image) => {
-          const label = document.createElement("label");
-          label.className = "check";
-          const input = document.createElement("input");
-          input.type = "checkbox";
-          input.value = image.id;
-          input.dataset.productImage = "true";
-          input.checked = selectedProductIds.has(image.id);
-          label.append(input, document.createTextNode(image.name));
-          productChoices.append(label);
+        tile.addEventListener("click", () => {
+          const selected = selectedMaterialIds[kind];
+          const index = selected.indexOf(image.id);
+          if (index === -1) {
+            selected.push(image.id);
+          } else {
+            selected.splice(index, 1);
+          }
+          renderMaterialGrid(kind);
+          const refreshedTile = Array.from(grid.querySelectorAll("[data-material-id]"))
+            .find((button) => button.dataset.materialId === image.id);
+          refreshedTile?.focus();
         });
-        replaceOptions(card.querySelector("[data-style-reference]"), materials.style, "请选择风格参考");
+        item.append(tile);
+        if (kind === "style") {
+          const masterButton = document.createElement("button");
+          masterButton.type = "button";
+          masterButton.className = "secondary compact master-button";
+          masterButton.textContent = colorMasterId === image.id ? "当前色彩母版" : "设为色彩母版";
+          masterButton.setAttribute("aria-pressed", String(colorMasterId === image.id));
+          masterButton.setAttribute("aria-label", `将 ${image.name} 设为色彩母版`);
+          masterButton.addEventListener("click", () => {
+            colorMasterId = image.id;
+            renderMaterialGrid("style");
+            const refreshedItem = Array.from(grid.querySelectorAll(".material-item"))
+              .find((element) => element.querySelector("[data-material-id]")?.dataset.materialId === image.id);
+            refreshedItem?.querySelector(".master-button")?.focus();
+          });
+          item.append(masterButton);
+        }
+        grid.append(item);
       });
-    }
-
-    function renderColorMasterOptions() {
-      colorMasterId.disabled = materials.style.length === 0;
-      replaceOptions(colorMasterId, materials.style, "请选择全局色彩母版");
+      productSelectionSummary.textContent = selectedMaterialIds.product.length
+        ? `已选择 ${selectedMaterialIds.product.length} 张外形参考图。`
+        : "尚未选择外形参考图。";
+      styleSelectionSummary.textContent = selectedMaterialIds.style.length
+        ? `已选择 ${selectedMaterialIds.style.length} 张仿照图；数字表示生成顺序。`
+        : "尚未选择仿照图。";
+      const master = materials.style.find((image) => image.id === colorMasterId);
+      colorMasterSummary.textContent = master
+        ? `色彩母版：${master.name}。它只提供全局调色方向，不会因此多生成一张。`
+        : "请在风格图片下点击“设为色彩母版”；母版可以不在仿照清单中。";
     }
 
     async function loadTaskToken() {
@@ -1183,84 +1199,15 @@
           throw new Error(result.error || "扫描失败");
         }
         materials[kind] = result.images;
-        renderMaterialGrid(kind);
+        selectedMaterialIds[kind] = [];
         if (kind === "style") {
-          renderColorMasterOptions();
+          colorMasterId = "";
         }
-        refreshOutputCardMaterials();
+        renderMaterialGrid(kind);
         setStatus(result.truncated ? "素材已扫描；超过展示上限的图片未显示。" : "素材已扫描。", "ok");
       } catch (error) {
         setStatus(`扫描失败：${error.message}`, "error");
       }
-    }
-
-    function addOutputCard() {
-      if (materials.product.length === 0 || materials.style.length === 0) {
-        setStatus("请先扫描产品实拍和风格参考，再新增输出卡片。", "error");
-        return;
-      }
-      const card = document.createElement("article");
-      card.className = "output-card";
-      card.setAttribute("role", "listitem");
-      const number = outputCards.children.length + 1;
-      const header = document.createElement("header");
-      const title = document.createElement("h3");
-      title.textContent = `输出卡片 ${number}`;
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "secondary compact";
-      remove.textContent = "移除";
-      remove.addEventListener("click", () => card.remove());
-      header.append(title, remove);
-      const grid = document.createElement("div");
-      grid.className = "grid";
-      const nameField = document.createElement("div");
-      nameField.className = "field";
-      nameField.innerHTML = '<label>卡片名称</label><input data-output-name autocomplete="off" placeholder="例如：厨房晨光场景">';
-      const styleField = document.createElement("div");
-      styleField.className = "field";
-      const styleLabel = document.createElement("label");
-      styleLabel.textContent = "本卡片风格参考";
-      const styleSelect = document.createElement("select");
-      styleSelect.dataset.styleReference = "true";
-      replaceOptions(styleSelect, materials.style, "请选择风格参考");
-      styleField.append(styleLabel, styleSelect);
-      const intentField = document.createElement("div");
-      intentField.className = "field full";
-      intentField.innerHTML = '<label>要表达的信息 / 卖点</label><textarea data-output-intent placeholder="填写真实卖点或信息；Codex 会在生成配方总览中起草本地化文案。"></textarea>';
-      const productField = document.createElement("fieldset");
-      productField.className = "field full";
-      const legend = document.createElement("legend");
-      legend.textContent = "本卡片产品实拍（必须手选 1–4 张）";
-      const choices = document.createElement("div");
-      choices.className = "checks";
-      choices.dataset.productChoices = "true";
-      productField.append(legend, choices);
-      const ratioField = document.createElement("div");
-      ratioField.className = "field";
-      ratioField.innerHTML = '<label>比例覆写</label><select data-ratio-override><option value="">使用全局默认比例</option><option value="1:1">1:1</option><option value="4:5">4:5</option><option value="3:4">3:4</option><option value="16:9">16:9</option><option value="9:16">9:16</option></select>';
-      const sceneField = document.createElement("div");
-      sceneField.className = "field";
-      sceneField.innerHTML = '<label>色彩策略</label><select data-scene-priority><option value="auto">自动：可在总览确认时覆写</option><option value="master">母版优先</option><option value="scene">场景优先</option></select>';
-      const copyField = document.createElement("div");
-      copyField.className = "field full";
-      copyField.innerHTML = '<label>文案覆写（可选）</label><textarea data-copy-override placeholder="留空则由 Codex 基于真实卖点和目标语言起草。"></textarea>';
-      grid.append(nameField, styleField, intentField, productField, ratioField, sceneField, copyField);
-      card.append(header, grid);
-      outputCards.append(card);
-      refreshOutputCardMaterials();
-    }
-
-    function readOutputCards() {
-      return Array.from(outputCards.querySelectorAll(".output-card"), (card) => ({
-        name: card.querySelector("[data-output-name]").value.trim(),
-        intent: card.querySelector("[data-output-intent]").value.trim(),
-        productImageIds: Array.from(card.querySelectorAll("input[data-product-image]:checked"), (input) => input.value),
-        styleReferenceId: card.querySelector("[data-style-reference]").value,
-        ratioOverride: card.querySelector("[data-ratio-override]").value,
-        colorPriority: card.querySelector("[data-scene-priority]").value,
-        copyOverride: card.querySelector("[data-copy-override]").value.trim()
-      }));
     }
 
     function buildPayload() {
@@ -1297,11 +1244,13 @@
         referenceWorkflow: isCustomerReferenceMode() ? {
           productMaterialsDirectory: productMaterialsPath.value.trim(),
           styleMaterialsDirectory: styleMaterialsPath.value.trim(),
-          colorMasterId: colorMasterId.value,
-          outputs: readOutputCards()
+          productImageIds: [...selectedMaterialIds.product],
+          styleReferenceIds: [...selectedMaterialIds.style],
+          colorMasterId,
+          colorPriority: colorPriority.value
         } : null,
         meta: {
-          schemaVersion: 3
+          schemaVersion: 4
         }
       };
     }
@@ -1407,7 +1356,6 @@
     splitProductInfo.addEventListener("click", splitProductText);
     document.querySelector("#scanProductMaterials").addEventListener("click", () => scanMaterials("product"));
     document.querySelector("#scanStyleMaterials").addEventListener("click", () => scanMaterials("style"));
-    document.querySelector("#addOutputCard").addEventListener("click", addOutputCard);
 
     selectAllTypes.addEventListener("change", () => {
       imageTypeInputs
@@ -1440,11 +1388,8 @@
       }
       if (isCustomerReferenceMode()) {
         const workflow = payload.referenceWorkflow;
-        const incompleteCard = workflow.outputs.find(
-          (output) => !output.name || !output.styleReferenceId || output.productImageIds.length < 1 || output.productImageIds.length > 4
-        );
-        if (!workflow.colorMasterId || workflow.outputs.length === 0 || incompleteCard) {
-          setStatus("客户参考模式需要选择色彩母版，并为每张输出填写名称、1–4 张产品实拍和 1 张风格参考。", "error");
+        if (workflow.productImageIds.length === 0 || workflow.styleReferenceIds.length === 0 || !workflow.colorMasterId) {
+          setStatus("请至少选择一张外形参考图、一张仿照图，并指定一张色彩母版。", "error");
           return;
         }
       }
@@ -1471,10 +1416,12 @@
         ratio.value = "1:1";
         materials.product = [];
         materials.style = [];
-        productMaterialGrid.replaceChildren();
-        styleMaterialGrid.replaceChildren();
-        outputCards.replaceChildren();
-        renderColorMasterOptions();
+        selectedMaterialIds.product = [];
+        selectedMaterialIds.style = [];
+        colorMasterId = "";
+        colorPriority.value = "auto";
+        renderMaterialGrid("product");
+        renderMaterialGrid("style");
         updateConditionalFields();
         setStatus("尚未保存。");
       }, 0);

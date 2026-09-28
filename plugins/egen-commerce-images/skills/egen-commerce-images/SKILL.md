@@ -40,7 +40,7 @@ Strictly distinguish `knowledge` library images from product images uploaded by 
 
 ### Customer Reference Source Mode
 
-When `taskOptions.styleSource` is `customer-reference`, customer-selected local reference images are the only style source. Do not read a built-in style prompt document, use `E:\e-commerce\knowledge`, or apply Type-Specific Reference Selection. Follow [客户参考风格工作流](references/customer-reference-workflow.md) for the strict per-card reference mapping, color-motherboard rule, confirmation gate, and image-generation calls.
+When `taskOptions.styleSource` is `customer-reference`, customer-selected local reference images are the only style source. Do not read a built-in style prompt document, use `E:\e-commerce\knowledge`, or apply Type-Specific Reference Selection. Follow [客户参考风格工作流](references/customer-reference-workflow.md) for the shared product references, ordered style references, color-master rule, confirmation gate, and image-generation calls.
 
 ### Built-in Style Source Mode
 
@@ -127,7 +127,7 @@ Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
 6. In parallel with the user filling the browser form, call `WAIT_URL` or `GET <FORM_URL base>/wait?timeout=600`. When it returns, read the returned `jsonPath`. Do not require the user to manually type `已保存`.
 7. If `/wait` times out or cannot be reached, ask the user to confirm after clicking `保存表单`, then read the current task result from `LATEST_URL`.
 
-The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans customer-provided local product and style directories, lets the customer select a color mother image, and creates free output cards with 1–4 product images and exactly 1 style reference each. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
+The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans customer-provided local product and style directories, lets the customer click multiple product and imitation images, and lets them mark a separate color mother image. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
 
 If the startup command returns exit code `124`, if the log does not contain `FORM_URL`, or if the printed `PID` is no longer running, treat the startup as failed and retry with a background `Start-Process` command before opening the browser. If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
@@ -162,13 +162,13 @@ If the startup command returns exit code `124`, if the log does not contain `FOR
 | 每类数量（仅内置风格） | 1；2；4；6；10 | 待填写 |
 | 额外生图要求 | 1 无额外要求；2 填写额外要求 | 1 |
 
-For a Markdown fallback in customer-reference mode, append one row per output card: `卡片名称｜表达意图｜产品实拍路径（1–4 条）｜风格参考路径（恰好 1 条）｜比例覆写（可空）｜色彩策略（auto/master/scene）｜文案覆写（可空）`. Also require one `全局色彩母版路径` from the style-reference directory. Do not auto-select or auto-map images.
+For a Markdown fallback in customer-reference mode, collect an ordered list of `外形参考图路径` and an ordered list of `仿照图路径`, plus one `全局色彩母版路径` and one global `色彩策略` (`auto`/`master`/`scene`). The mother image may be outside the imitation list. The user selects every image; preserve the imitation-list order.
 
-Do not proceed until the required task options are filled. Built-in mode requires target country/language, platform, knowledge style, image types, ratio, and quantity per type. Customer-reference mode requires target country/language, platform, global ratio, a color mother path, and at least one complete output card. Defaults are English and Spanish, but accept additional languages when the user supplies them.
+Do not proceed until the required task options are filled. Built-in mode requires target country/language, platform, knowledge style, image types, ratio, and quantity per type. Customer-reference mode requires target country/language, platform, global ratio, at least one product reference, at least one imitation reference, and a color mother path. Defaults are English and Spanish, but accept additional languages when the user supplies them.
 
 ### Step 3: Parse and Validate Form Data
 
-For the local browser form workflow, read the saved JSON from the `jsonPath` returned by `WAIT_URL` / `/wait`. If `/wait` failed after the user saved, read the current service result from `LATEST_URL`. Do not ask the user to paste JSON into chat. The current JSON schema is version 3; schema versions 1 and 2 remain valid legacy built-in-style inputs. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
+For the local browser form workflow, read the saved JSON from the `jsonPath` returned by `WAIT_URL` / `/wait`. If `/wait` failed after the user saved, read the current service result from `LATEST_URL`. Do not ask the user to paste JSON into chat. The current JSON schema is version 4; schema versions 1 and 2 remain valid legacy built-in-style inputs, and version 3 customer-reference tasks retain their per-card mapping. Once the saved JSON has been read into context, close the form server before continuing to the analysis plan. Prefer `POST <FORM_URL base>/shutdown`; if the shutdown request is unavailable or fails, stop only the exact `PID` printed by the server. Do not leave the product form service running in the background after the task data has been captured.
 
 Expected saved JSON shape:
 
@@ -200,8 +200,9 @@ Expected saved JSON shape:
     "extraRequirementMode": "none",
     "extraRequirements": ""
   },
+  "referenceWorkflow": null,
   "meta": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "taskId": "short task id",
     "formStartedAt": "ISO-8601 timestamp",
     "savedAt": "ISO-8601 timestamp",
@@ -210,7 +211,9 @@ Expected saved JSON shape:
 }
 ```
 
-For `customer-reference`, `knowledgeStyle`, `imageTypes`, and `quantityPerType` are not generation requirements. Require the server-resolved `referenceWorkflow.colorMasterPath` and at least one `referenceWorkflow.outputs[]` record. Each record must contain a nonempty name, exactly 1–4 `productImagePaths`, and exactly 1 `styleReferencePath`; reject incomplete mappings with one focused request for correction. Read [客户参考风格工作流](references/customer-reference-workflow.md) before proceeding.
+For schema v4 `customer-reference`, `referenceWorkflow` contains ordered `productImageIds[]` and `styleReferenceIds[]`, `colorMasterId`, global `colorPriority`, and their server-resolved `productImagePaths[]`, `styleReferencePaths[]`, and `colorMasterPath`. The ID arrays represent user selections; use only resolved paths for generation.
+
+For `customer-reference`, `knowledgeStyle`, `imageTypes`, and `quantityPerType` are not generation requirements. In schema v4, require the server-resolved `referenceWorkflow.productImagePaths` and ordered `referenceWorkflow.styleReferencePaths` to each contain at least one path, plus `referenceWorkflow.colorMasterPath` and a valid global `colorPriority`. For saved schema v3 customer-reference tasks, require `colorMasterPath` and at least one `outputs[]` card with a nonempty name, 1–4 `productImagePaths`, and one `styleReferencePath` per card; keep its per-card mapping. Reject incomplete selections with one focused request for correction. Read [客户参考风格工作流](references/customer-reference-workflow.md) before proceeding.
 
 For fallback Markdown tables, parse the user's filled tables and normalize numbered options or fixed enum values. Image types support multiple selections such as `2,3,5`, `Hero,Selling,Specs`, or Chinese image type names.
 
@@ -220,7 +223,7 @@ If the saved JSON or fallback tables use `OTHER` / `其他` for country/language
 
 Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, accessories, or other product facts. Product information fields may remain `待填写`; clearly separate known facts from assumptions or suggested wording.
 
-State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. In built-in mode, calculate `selected image type count x quantity per type` and batch only when needed. In customer-reference mode, generate exactly one final image per confirmed output card, with a separate call for every card.
+State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. In built-in mode, calculate `selected image type count x quantity per type` and batch only when needed. In schema v4 customer-reference mode, generate exactly one final image per confirmed imitation reference, with a separate call for every reference. For legacy v3, retain one image per confirmed output card.
 
 ### Step 10: Analysis Plan and Confirmation
 
@@ -233,17 +236,17 @@ Only after Step 1 is complete and the Step 2 saved form JSON or fallback tables 
 - 电商标题建议：关键词优化版
 - 电商标题建议：卖点突出版
 - 合规提醒
-- 套图生成范围：平台、国家/语言、比例、补充要求，以及以下之一：内置 mode 的 knowledge style、图片类型与每类数量；客户参考 mode 的逐卡名称、产品实拍文件、风格参考文件、色彩母版、色彩策略、最终比例、表达意图与文案草案。
+- 套图生成范围：平台、国家/语言、比例、补充要求，以及以下之一：内置 mode 的 knowledge style、图片类型与每类数量；客户参考 v4 的共用外形参考图、按生成顺序排列的仿照图、色彩母版、全局色彩策略与文案草案；旧版 v3 的逐卡配方。
 
 If the user requests changes, output a revised plan and continue waiting for confirmation. Do not generate any image until the user clearly confirms the final plan.
 
 ### Step 11: Generate Final Outputs
 
-After the user confirms the final analysis plan, generate the final localized product description and the confirmed ecommerce image set. In built-in mode, generate `selected image type count x quantity per type` images. In customer-reference mode, generate one final image for each confirmed output card, in card order.
+After the user confirms the final analysis plan, generate the final localized product description and the confirmed ecommerce image set. In built-in mode, generate `selected image type count x quantity per type` images. In customer-reference v4 mode, generate one final image for each confirmed imitation reference, in selection order. For legacy v3, use card order.
 
 Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. In built-in mode, follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
 
-In customer-reference mode, follow [客户参考风格工作流](references/customer-reference-workflow.md). For every card, pass only that card's 1–4 resolved product paths and 1 resolved style-reference path to `image_gen.imagegen` through `referenced_image_paths`. The product paths directly determine product appearance; do not turn product appearance into text instructions or add unselected product images. The style reference directly determines composition and visual language. A different color mother image may inform only a concise color-direction instruction, never a second style-reference image. Preserve the reference's scene, composition, camera, lighting, information hierarchy, layout rhythm, text position, density, type mood, and generic components as far as possible while replacing the product and all protected or third-party elements. Generate every confirmed card once and deliver all generated results without automatic quality inspection or retry.
+In customer-reference mode, follow [客户参考风格工作流](references/customer-reference-workflow.md). For each v4 imitation reference, pass all resolved `productImagePaths` and that one `styleReferencePath` to `image_gen.imagegen` through `referenced_image_paths`; for legacy v3, use each card's mapped references. The product paths directly determine product appearance; do not turn product appearance into text instructions or add unselected product images. The style reference directly determines composition and visual language. A different color mother image may inform only a concise color-direction instruction, never a second style-reference image. Preserve the reference's scene, composition, camera, lighting, information hierarchy, layout rhythm, text position, density, type mood, and generic components as far as possible while replacing the product and all protected or third-party elements. Generate every confirmed image once and deliver all generated results without automatic quality inspection or retry.
 
 After each final image is generated, copy the selected generated file from the Codex default generated-images location into the product output folder. Copy files; do not move or delete the original generated files, and intentionally keep the Codex default generated-images archive in `$CODEX_HOME/generated_images/...`.
 
@@ -260,7 +263,7 @@ Use this final path format:
 
 `<product-root>\output\<platform>-<country>-<allStyle>\<order>-<imageType>-<style>.png`
 
-Use lowercase file-safe slugs for `platform`, `country`, and `allStyle`. Map country codes as `US_EN -> us`, `MX_ES -> mx`, `CL_ES -> cl`, `CO_ES -> co`, `ZA_EN -> za`; for custom countries, create a conservative file-safe slug from the user's value. `allStyle` is the confirmed style token, or multiple confirmed style tokens joined by `-` if the user explicitly requested a combined style. In customer-reference mode, use `customer-reference` as `allStyle` and the file-safe card name as `imageType`. Use two-digit order numbers in confirmed order, starting at `01`. Example:
+Use lowercase file-safe slugs for `platform`, `country`, and `allStyle`. Map country codes as `US_EN -> us`, `MX_ES -> mx`, `CL_ES -> cl`, `CO_ES -> co`, `ZA_EN -> za`; for custom countries, create a conservative file-safe slug from the user's value. `allStyle` is the confirmed style token, or multiple confirmed style tokens joined by `-` if the user explicitly requested a combined style. In customer-reference v4, use `customer-reference` as `allStyle` and the imitation image filename stem as the file-safe `imageType`; for legacy v3, use the file-safe card name. Use two-digit order numbers in confirmed order, starting at `01`. Example:
 
 `E:\e-commerce\product\Q-020 2PCS音频线\output\mercadolibre-mx-stylehero-style6\01-Hero-stylehero.png`
 
