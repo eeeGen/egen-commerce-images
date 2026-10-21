@@ -1,6 +1,7 @@
 ---
 name: extract-product-info
 description: Extract and reconcile structured product information from a local folder of product images, with optional supplier attributes, parameter tables, marketplace copy, or user corrections. Use when the user provides an image-folder path and asks to read images in order, complete product information image by image, organize product facts, compare image evidence with Product Attributes, or produce a conflict-aware product information summary. Run independently from ecommerce image generation and SEO image naming.
+
 ---
 
 # Extract Product Info
@@ -38,11 +39,20 @@ Use this exact field order:
 ## Workflow
 
 1. Enumerate `.png`, `.jpg`, `.jpeg`, and `.webp` files directly under `folder_path`. Ignore non-image files unless the user explicitly identifies one as supplementary information.
-2. Sort filenames in natural order so numeric portions sort numerically, for example `2.jpg` before `10.jpg`. State the total image count and processing order before inspection.
-3. Inspect one image at a time. Immediately after each image, refresh the current template state and append a filename-specific record of facts newly added, confirmed, repeated, contradicted, or still unclear.
-4. Continue until every enumerated image has been processed. Never silently skip an unreadable or unsupported image; record the failure against that filename.
-5. Reconcile all image findings with `supplementary_info`, preserving source provenance for disputed values.
-6. Produce the required final output only after all images are processed, unless an actual tool or context limit prevents completion.
+
+2. Sort by natural order of the complete filename so numeric portions sort numerically, for example `2.jpg` before `10.jpg`. If filename prefixes clearly encode image order, use that order instead. State the sorting basis, total image count, and processing order before inspection.
+
+3. 严格逐张检查图片，每次视觉读取调用只提交一张。确认图片内容已实际显示或被视觉读取后，立即更新当前模板，并追加该文件的详细逐图记录，标明新增、确认、重复、矛盾或仍不清楚的信息；再处理下一张。逐图详细记录在处理过程中须逐张向用户发送，须完整列入最终答复。不得批量提交或联合解读多张图片。仅有文件路径、成功打开或解码、或 `queued` 响应，不算完成检查。Do not batch-submit or jointly summarize multiple images.
+
+4. If an image cannot be read, try the available image-reading paths in turn, preferring tools that return image content directly. If needed, use a workspace preview, an image-input-capable tool, or a thumbnail saved in a writable temporary directory. Do not modify source images or print image/binary/Base64 data to terminal or tool text. If inspection stalls on one image, switch paths and continue; do not abandon the batch. Mark an image unreadable only after all available paths fail, and record the filename and failure.
+
+5. Continue until every enumerated image has been processed. Before finishing, verify that every filename has a record. If blocked by an actual tool or context limit, list processed and remaining filenames and the reason.
+
+6. **完成门槛：** 仅当已检查图片数等于枚举总数、且每个文件名均有逐图记录时，才可输出正常汇总；否则不得按正常完成收尾，必须说明已处理与剩余文件，并按“续接检查点”输出 `complete: false`。
+
+7. Reconcile all image findings with `supplementary_info`, preserving source provenance for disputed values.
+
+8. Produce the required final output only after all images are processed, unless an actual tool or context limit prevents completion.
 
 ## Evidence And Conflict Rules
 
@@ -75,7 +85,7 @@ Set `complete: false` in that checkpoint. A later task or subagent can resume by
 Return exactly these three sections on normal completion:
 
 1. `产品信息汇总`: the fully updated fixed template in its original field order.
-2. `逐图新增信息记录`: one compact entry per filename in processing order, including confirmed additions and any conflict or unreadable-image note.
+2. `逐图新增信息记录`: one compact entry per filename in processing order, including confirmed additions and any conflict or unreadable-image note. 最终逐图记录必须依据检查时逐张维护的记录整理，不得在全部图片处理完后仅凭记忆补写。
 3. `矛盾/歧义/待确认项`: list every unresolved discrepancy, missing unit, uncertain translation, or unsupported claim. If none exist, write `未发现明显冲突`.
 
 If a conflict or ambiguity changes a product-facing field, ask one focused confirmation question after the three sections. Do not continue into image generation in the same task.

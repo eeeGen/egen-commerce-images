@@ -1,6 +1,57 @@
 # Version Update
 
+## v0.11.0 - 2026-10-21
+
+### 所属 Skill：egen-commerce-images
+
+### Summary
+
+Simplified customer-reference image selection into one shared product-reference selection and an ordered list of style references. Each selected style reference now produces one image, while color direction is set once for the full set.
+
+### Changes
+
+- Replaced per-output customer-reference cards with shared product references, ordered imitation references, one color master, and one global color priority.
+- Preserved selection order and made each imitation reference produce exactly one independently generated output.
+- Updated the browser form, server-resolved task schema, main skill, customer-reference workflow, and SOP to describe the current flow.
+- Kept legacy schema v3 customer-reference tasks readable with their per-card mappings.
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `assets/product-task-form.html`
+- `scripts/product_form_server.py`
+- `scripts/test_product_form_server.py`
+- `skills/egen-commerce-images/SKILL.md`
+- `skills/egen-commerce-images/references/customer-reference-workflow.md`
+- `skills/egen-commerce-images/VERSION_UPDATE.md`
+- `docs/SOP-电商产品图制作.md`
+- `docs/plan-archives/2026-10-21-v0.11.0-customer-reference-selection.md`
+
+### 所属 Skill：extract-product-info
+
+### Summary
+
+修复按图片提取商品信息时的逐图记录、图片读取回退和任务完成判断，确保最终汇总只依据实际检查过的图片，并能准确报告未完成项。
+
+### Changes
+
+- 强制每次视觉读取只处理一张图片；确认图片内容实际可见后，立即更新模板并记录该文件的新增、确认、重复、矛盾或待确认信息。
+- 要求逐图过程记录同步给用户，并完整纳入最终答复；最终记录须依据逐张维护的内容整理。
+- 增加图片读取失败时的替代路径、不可读判定条件，以及对 `queued`、路径存在或解码成功等非视觉证据的校验要求。
+- 增加逐图记录完整性检查和完成门槛；受工具或上下文限制时输出包含已处理/剩余文件的 `complete: false` 续接检查点。
+- 明确禁止把图片或 Base64 数据输出到终端文本，并要求穷尽可用读取路径后才能标记图片不可读。
+
+### Files Updated
+
+- `.codex-plugin/plugin.json`
+- `skills/extract-product-info/SKILL.md`
+- `docs/缺陷修复报告-20261021.md`
+- `docs/VERSION_UPDATE.md`
+- `docs/plan-archives/2026-10-21-v0.11.0-extract-product-info-image-reading-fixes.md`
+
 ## v0.10.0 - 2026-09-13
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -22,6 +73,8 @@ Added `style6-v3-2`, a selectable brand-prose narrative branch that keeps style6
 - `skills/egen-commerce-images/VERSION_UPDATE.md`
 
 ## v0.9.0 - 2026-09-08
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -45,6 +98,8 @@ Added two independently selectable style6 branches for like-for-like product-ima
 - `skills/egen-commerce-images/VERSION_UPDATE.md`
 
 ## v0.8.0 - 2026-09-03
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -72,6 +127,8 @@ Added a customer-reference style mode that produces one independently mapped fin
 
 ## v0.7.4 - 2026-09-03
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Added `style6plus`, a Feature-only validation style that keeps style6 as its visual baseline while replacing the generic Feature layout with an explicit, evidence-gated composition blueprint.
@@ -93,6 +150,8 @@ Added `style6plus`, a Feature-only validation style that keeps style6 as its vis
 
 ## v0.7.3 - 2026-08-14
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Added the missing dedicated Hero prompt for style6 by adapting the high-information-density stylehero composition to the style6 blue-and-gold scene-evidence visual system.
@@ -113,6 +172,8 @@ Added the missing dedicated Hero prompt for style6 by adapting the high-informat
 
 ## v0.7.2 - 2026-08-14
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Changed the ecommerce image output archival rule so final generated images are copied into the product workspace output folder while the Codex default generated-images archive remains intact.
@@ -131,6 +192,8 @@ Changed the ecommerce image output archival rule so final generated images are c
 - `VERSION_UPDATE.md`
 
 ## v0.7.1 - 2026-08-14
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -151,6 +214,8 @@ Improved the StarFlow night product task form by switching the two large form se
 - `docs/plan-archives/2026-08-14-v0.7.1-form-tabs-status-rail.md`
 
 ## v0.7.0 - 2026-08-13
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -177,6 +242,8 @@ Added `extract-product-info` as the plugin's third independent skill. It reads p
 
 ## v0.6.0 - 2026-08-13
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Aligned the local product task form with the StarFlow STUDIO night-mode interface while keeping the existing form data flow and schema unchanged.
@@ -199,6 +266,8 @@ Aligned the local product task form with the StarFlow STUDIO night-mode interfac
 - `VERSION_UPDATE.md`
 
 ## v0.5.0 - 2026-08-13
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -226,6 +295,8 @@ Improved the local browser form workflow with conditional fields, task-specific 
 
 ## v0.4.3 - 2026-08-13
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Fixed the local browser form startup instructions so Codex starts the form service as a background process instead of using a foreground command that can time out and kill the server before the browser opens.
@@ -244,6 +315,8 @@ Fixed the local browser form startup instructions so Codex starts the form servi
 - `VERSION_UPDATE.md`
 
 ## v0.4.2 - 2026-08-13
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -266,6 +339,8 @@ Added an explicit shutdown path for the local browser form service so Codex can 
 
 ## v0.4.1 - 2026-08-13
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Fixed the local browser form service instructions so Codex resolves the bundled service script from the skill folder to the plugin root correctly.
@@ -284,6 +359,8 @@ Fixed the local browser form service instructions so Codex resolves the bundled 
 - `VERSION_UPDATE.md`
 
 ## v0.4.0 - 2026-08-13
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
@@ -308,6 +385,8 @@ Added a local browser form workflow that lets users fill dropdowns, checkboxes, 
 
 ## v0.3.0 - 2026-08-13
 
+**所属 Skill：** `egen-commerce-images`
+
 ### Summary
 
 Replaced the multi-turn Step 2-9 interview flow with two fixed Markdown table forms after product image upload, while keeping Step 1 as a separate product-image calibration gate.
@@ -328,6 +407,8 @@ Replaced the multi-turn Step 2-9 interview flow with two fixed Markdown table fo
 - `VERSION_UPDATE.md`
 
 ## 2026-08-06
+
+**所属 Skill：** `egen-commerce-images`
 
 ### Summary
 
