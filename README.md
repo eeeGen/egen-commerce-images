@@ -6,6 +6,7 @@ This plugin includes:
 
 - `egen-commerce-images`: ecommerce product image strategy, localized listing copy, and GPT Image 2 prompt workflows.
 - `seo-naming`: SEO-friendly ecommerce product image filename organization.
+- `extract-product-info`: image-by-image product information extraction from product image folders.
 
 ## Install From Terminal
 
@@ -43,6 +44,7 @@ codex plugin add egen-commerce-images@egen-commerce-images-marketplace
 .agents/plugins/marketplace.json
 plugins/egen-commerce-images/.codex-plugin/plugin.json
 plugins/egen-commerce-images/skills/egen-commerce-images/SKILL.md
+plugins/egen-commerce-images/skills/extract-product-info/SKILL.md
 plugins/egen-commerce-images/skills/seo-naming/SKILL.md
 ```
 
