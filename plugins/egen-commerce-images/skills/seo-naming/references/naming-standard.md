@@ -18,14 +18,13 @@ The filename begins with product code, display order, and image type. SEO keywor
 
 SEO-friendly product image filenames are a low-cost supporting signal. They help search engines, marketplace systems, CDNs, and internal databases understand and manage image assets. They do not guarantee ranking, traffic, or sales improvements.
 
-## Hyphen Rule
+## Filename Rules
 
-Use `-` for file names and URLs because it is widely treated as a word separator. Use `_` for database fields and code identifiers.
-
-```text
-Filename: a003-01-hero-flatware-set-32-piece-service-for-8.png
-Fields: seo_filename, image_type, sort_order, product_code
-```
+- Use lowercase ASCII characters and hyphens `-`; do not use underscores, spaces, Chinese characters, parentheses, commas, or decorative symbols.
+- Keep filenames readable and avoid keyword stuffing.
+- Preserve the real file extension.
+- Keep `productcode-##-type` at the front for sorting and database operations.
+- Use underscores for database fields and code identifiers, not for SEO filenames or URLs.
 
 ## Type Definitions
 
@@ -57,6 +56,8 @@ Fields: seo_filename, image_type, sort_order, product_code
 ```
 
 Types can be missing or repeated. Do not force one image into every type if the content does not support it.
+
+Use these lowercase filename tokens in the same order: `hero, selling, corea, coreb, feature, specs, value, compare, lifestyle, guide, closing`.
 
 ## SEO Keyword Selection
 

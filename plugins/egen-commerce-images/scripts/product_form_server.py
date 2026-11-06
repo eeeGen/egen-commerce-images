@@ -19,6 +19,14 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from image_library import (
+    bind_library,
+    clean_manual_path,
+    discover_library,
+    list_styles,
+    pick_library_folder,
+)
+
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 ASSETS_ROOT = PLUGIN_ROOT / "assets"
@@ -31,7 +39,7 @@ DEFAULT_OUTPUT_DIR = (
 SCHEMA_VERSION = 4
 IMAGE_EXTENSIONS = {".jpeg", ".jpg", ".png", ".webp"}
 PRODUCT_IMAGE_LIMIT = 50
-STYLE_IMAGE_LIMIT = 30
+STYLE_IMAGE_LIMIT = None
 MAX_SAVE_BODY_BYTES = 1_000_000
 
 
@@ -83,12 +91,12 @@ def content_type_for(path: Path) -> str:
     return guessed or "application/octet-stream"
 
 
-def scan_image_directory(directory: Path, limit: int) -> dict[str, Any]:
+def scan_image_directory(directory: Path, limit: int | None) -> dict[str, Any]:
     """Return supported images directly inside a user-selected material directory."""
-    if limit < 1:
+    if limit is not None and limit < 1:
         raise ValueError("limit_must_be_positive")
 
-    resolved_directory = directory.expanduser().resolve()
+    resolved_directory = Path(clean_manual_path(str(directory))).expanduser().resolve()
     if not resolved_directory.is_dir():
         raise ValueError("directory_not_found")
 
@@ -100,7 +108,7 @@ def scan_image_directory(directory: Path, limit: int) -> dict[str, Any]:
         ),
         key=lambda path: path.name.casefold(),
     )
-    selected = candidates[:limit]
+    selected = candidates if limit is None else candidates[:limit]
     return {
         "directory": str(resolved_directory),
         "images": [
@@ -112,7 +120,7 @@ def scan_image_directory(directory: Path, limit: int) -> dict[str, Any]:
             }
             for path in selected
         ],
-        "truncated": len(candidates) > limit,
+        "truncated": limit is not None and len(candidates) > limit,
     }
 
 
@@ -154,8 +162,8 @@ def resolve_customer_reference_workflow(
 
     resolved_payload = dict(payload)
     resolved_workflow = {
-        "productMaterialsDirectory": workflow.get("productMaterialsDirectory", ""),
-        "styleMaterialsDirectory": workflow.get("styleMaterialsDirectory", ""),
+        "productMaterialsDirectory": clean_manual_path(workflow.get("productMaterialsDirectory", "")),
+        "styleMaterialsDirectory": clean_manual_path(workflow.get("styleMaterialsDirectory", "")),
         "productImageIds": workflow["productImageIds"],
         "styleReferenceIds": workflow["styleReferenceIds"],
         "colorMasterId": workflow["colorMasterId"],
@@ -165,6 +173,12 @@ def resolve_customer_reference_workflow(
         "colorMasterPath": color_master["path"],
     }
     resolved_payload["referenceWorkflow"] = resolved_workflow
+    product_info = payload.get("productInfo")
+    if isinstance(product_info, dict):
+        resolved_payload["productInfo"] = dict(product_info)
+        document_path = product_info.get("productInfoPath")
+        if isinstance(document_path, str):
+            resolved_payload["productInfo"]["productInfoPath"] = clean_manual_path(document_path)
     return resolved_payload
 
 
@@ -175,6 +189,7 @@ def make_handler(
     task_token: str,
 ) -> type[BaseHTTPRequestHandler]:
     saved_condition = threading.Condition()
+    picker_lock = threading.Lock()
     saved_state: dict[str, Any] = {
         "saveCount": 0,
         "jsonPath": None,
@@ -182,6 +197,7 @@ def make_handler(
         "savedAt": None,
     }
     material_catalog: dict[str, dict[str, str]] = {}
+    library_state: dict[str, Any] = {"root": None, "candidates": {}}
 
     class ProductFormHandler(BaseHTTPRequestHandler):
         server_version = "EgenProductForm/0.6.0"
@@ -216,6 +232,32 @@ def make_handler(
         def _has_task_token(self, query: dict[str, list[str]]) -> bool:
             supplied_token = (query.get("token") or [""])[0]
             return hmac.compare_digest(supplied_token, task_token)
+
+        def _register_images(self, scan_result: dict[str, Any], kind: str) -> dict[str, Any]:
+            images = []
+            for image in scan_result["images"]:
+                material_catalog[image["id"]] = {
+                    "kind": kind,
+                    "name": image["name"],
+                    "path": image["path"],
+                }
+                images.append({
+                    "id": image["id"],
+                    "name": image["name"],
+                    "mimeType": image["mimeType"],
+                    "previewUrl": f"/material?id={image['id']}&token={task_token}",
+                })
+            return {
+                "directory": scan_result["directory"],
+                "images": images,
+                "truncated": scan_result["truncated"],
+            }
+
+        def _bind_library(self, directory: Path) -> None:
+            root = bind_library(directory)
+            library_state["root"] = root
+            library_state["candidates"] = {}
+            self._send_json(200, {"status": "found", "libraryName": root.name})
 
         def _current_saved_response(self) -> dict[str, Any] | None:
             if not saved_state["payload"] or not saved_state["jsonPath"]:
@@ -289,29 +331,79 @@ def make_handler(
                     self._send_json(400, {"error": "invalid_material_directory"})
                     return
 
-                images = []
-                for image in scan_result["images"]:
-                    material_catalog[image["id"]] = {
-                        "kind": kind,
-                        "name": image["name"],
-                        "path": image["path"],
-                    }
-                    images.append(
-                        {
-                            "id": image["id"],
-                            "name": image["name"],
-                            "mimeType": image["mimeType"],
-                            "previewUrl": f"/material?id={image['id']}&token={task_token}",
-                        }
-                    )
-                self._send_json(
-                    200,
-                    {
-                        "directory": scan_result["directory"],
-                        "images": images,
-                        "truncated": scan_result["truncated"],
-                    },
-                )
+                self._send_json(200, self._register_images(scan_result, kind))
+                return
+
+            if path == "/library/discover":
+                query = parse_qs(parsed_url.query)
+                if not self._has_task_token(query):
+                    self._send_json(403, {"error": "forbidden"})
+                    return
+                discovery = discover_library(Path.cwd())
+                candidates = discovery["candidates"]
+                if discovery["status"] == "found":
+                    library_state["root"] = candidates[0]
+                    library_state["candidates"] = {}
+                    self._send_json(200, {
+                        "status": "found",
+                        "source": discovery["source"],
+                        "libraryName": candidates[0].name,
+                    })
+                elif discovery["status"] == "multiple":
+                    library_state["root"] = None
+                    library_state["candidates"] = {uuid.uuid4().hex: root for root in candidates}
+                    self._send_json(200, {
+                        "status": "multiple",
+                        "source": discovery["source"],
+                        "candidates": [
+                            {"id": candidate_id, "name": root.name, "location": str(root)}
+                            for candidate_id, root in library_state["candidates"].items()
+                        ],
+                    })
+                else:
+                    library_state["root"] = None
+                    library_state["candidates"] = {}
+                    self._send_json(200, {"status": discovery["status"]})
+                return
+
+            if path == "/library/styles":
+                query = parse_qs(parsed_url.query)
+                if not self._has_task_token(query):
+                    self._send_json(403, {"error": "forbidden"})
+                    return
+                root = library_state["root"]
+                if root is None:
+                    self._send_json(409, {"error": "library_not_selected"})
+                    return
+                try:
+                    styles = list_styles(root)
+                except (OSError, ValueError):
+                    library_state["root"] = None
+                    self._send_json(409, {"error": "library_unavailable"})
+                    return
+                self._send_json(200, {"libraryName": root.name, "styles": styles})
+                return
+
+            if path == "/library/images":
+                query = parse_qs(parsed_url.query)
+                if not self._has_task_token(query):
+                    self._send_json(403, {"error": "forbidden"})
+                    return
+                root = library_state["root"]
+                style_name = (query.get("style") or [""])[0]
+                if root is None or not style_name:
+                    self._send_json(409, {"error": "library_not_selected"})
+                    return
+                try:
+                    available = {style["name"]: style for style in list_styles(root)}
+                    if style_name not in available or available[style_name]["disabledReason"]:
+                        self._send_json(400, {"error": "style_unavailable"})
+                        return
+                    scan_result = scan_image_directory(root / style_name, STYLE_IMAGE_LIMIT)
+                except (OSError, ValueError):
+                    self._send_json(400, {"error": "style_unavailable"})
+                    return
+                self._send_json(200, self._register_images(scan_result, "style"))
                 return
 
             if path == "/material":
@@ -396,6 +488,50 @@ def make_handler(
             if path == "/shutdown":
                 self._send_json(200, {"ok": True, "message": "server shutting down"})
                 self._schedule_shutdown()
+                return
+
+            if path in {"/library/pick", "/library/select", "/library/bind"}:
+                query = parse_qs(urlparse(self.path).query)
+                if not self._has_task_token(query):
+                    self._send_json(403, {"error": "forbidden"})
+                    return
+                if path == "/library/pick":
+                    if not picker_lock.acquire(blocking=False):
+                        self._send_json(409, {"error": "picker_busy"})
+                        return
+                    try:
+                        directory = pick_library_folder()
+                        if directory is None:
+                            self._send_json(200, {"status": "cancelled"})
+                        else:
+                            self._bind_library(directory)
+                    except RuntimeError:
+                        self._send_json(409, {"error": "no_desktop"})
+                    except (OSError, ValueError):
+                        self._send_json(400, {"error": "invalid_library_directory"})
+                    finally:
+                        picker_lock.release()
+                    return
+
+                try:
+                    content_length = int(self.headers.get("Content-Length", "0") or "0")
+                    if content_length < 1 or content_length > 8192:
+                        raise ValueError("invalid_content_length")
+                    body = json.loads(self.rfile.read(content_length).decode("utf-8"))
+                    if not isinstance(body, dict):
+                        raise ValueError("invalid_body")
+                    if path == "/library/select":
+                        directory = library_state["candidates"].get(body.get("candidateId"))
+                        if directory is None:
+                            raise ValueError("invalid_candidate")
+                    else:
+                        manual_directory = clean_manual_path(body.get("directory", ""))
+                        if not manual_directory:
+                            raise ValueError("missing_directory")
+                        directory = Path(manual_directory)
+                    self._bind_library(directory)
+                except (OSError, ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
+                    self._send_json(400, {"error": "invalid_library_directory"})
                 return
 
             if path != "/save":

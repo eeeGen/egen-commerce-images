@@ -4,9 +4,9 @@
 
 ## 任务资料
 
-schema v4 使用服务端解析的 `referenceWorkflow.productImagePaths`（共用外形参考图，至少一张）、按用户选中顺序排列的 `referenceWorkflow.styleReferencePaths`（仿照图，至少一张）、`referenceWorkflow.colorMasterPath`（单张色彩母版）和全局 `referenceWorkflow.colorPriority`。只信任这些已解析路径；浏览器传回的 ID 和目录字段不用于生图。母版可以不在仿照图列表中；它不增加输出数量。
+schema v4 使用服务端解析的 `referenceWorkflow.productImagePaths`（共用外形参考图，至少一张）、按用户选中顺序排列的 `referenceWorkflow.styleReferencePaths`（仿照图，至少一张）、`referenceWorkflow.colorMasterPath`（必填的单张色彩母版）和全局 `referenceWorkflow.colorPriority`（`scene`、`master` 或 `auto`）。只信任这些已解析路径；浏览器传回的 ID 和目录字段不用于生图。母版可以不在仿照图列表中；它不增加输出数量。
 
-如读取已保存的 schema v3 客户参考任务，沿用该任务 `referenceWorkflow.outputs[]` 中逐卡解析的 `productImagePaths`、`styleReferencePath`、`colorPriority`、`ratioOverride`、`intent` 和 `copyOverride`，每卡生成一张。旧任务不转换为 v4。
+客户参考模式不要求 `knowledgeStyle`、`imageTypes` 或 `quantityPerType`。schema v4 必须有上述已解析路径和有效的全局 `colorPriority`。对于已保存的 schema v3 客户参考任务，要求 `colorMasterPath`，并至少有一张输出卡；每张卡必须有非空名称、1–4 个 `productImagePaths` 和一个 `styleReferencePath`。沿用每卡的 `colorPriority`、`ratioOverride`、`intent` 和 `copyOverride`，每卡生成一张；拒绝不完整选择并一次性指出需要补齐的内容。旧任务不转换为 v4。
 
 外形参考图直接校准产品外观；不要以文字描述替代或扩展产品的外形、比例、颜色、材质、结构、接口、配件和细节。参考图画幅不决定输出比例；v4 使用 `taskOptions.ratio`，v3 使用全局比例或卡片的 `ratioOverride`。
 

@@ -31,7 +31,7 @@
     ],
     "websiteURL": "https://github.com/eeeGen/egen-commerce-images",
     "defaultPrompt": [
-      "Create an ecommerce product image plan.",
+      "Create an ecommerce product image plan. After receiving product photos or a product-image path, open the bundled local task form for the remaining options.",
       "Generate marketplace product image prompts.",
       "Extract product information from an image folder.",
       "Rename product images for SEO."

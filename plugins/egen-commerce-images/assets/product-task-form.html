@@ -503,6 +503,12 @@
       transform: translateY(-1px);
     }
 
+    button:disabled {
+      cursor: wait;
+      opacity: 0.55;
+      transform: none;
+    }
+
     button.primary {
       color: #02090a;
       border-color: var(--accent);
@@ -569,6 +575,23 @@
     .hint {
       font-size: 11px;
       color: var(--muted);
+    }
+
+    .library-actions,
+    .path-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .library-actions select,
+    .path-row input {
+      flex: 1 1 220px;
+    }
+
+    .path-row[hidden] {
+      display: none;
     }
 
     .material-grid {
@@ -999,10 +1022,29 @@
                 <div id="productMaterialGrid" class="material-grid" role="group" aria-label="外形参考图"></div>
               </div>
               <div class="field full">
-                <label for="styleMaterialsPath">第 2 步：仿照图目录</label>
-                <div class="checks">
-                  <input id="styleMaterialsPath" autocomplete="off" placeholder="例如 E:\\references\\autumn-campaign">
-                  <button class="secondary compact" type="button" id="scanStyleMaterials">扫描风格参考</button>
+                <label for="styleChoice">第 2 步：仿照图来源</label>
+                <div class="library-actions">
+                  <select id="styleChoice" aria-label="选择图库 style 或手动指定参考图">
+                    <option value="manual">手动指定参考图</option>
+                  </select>
+                  <button class="secondary compact" type="button" id="refreshLibrary">刷新图库</button>
+                  <button class="secondary compact" type="button" id="pickLibrary">选择图库文件夹</button>
+                </div>
+                <p id="libraryStatus" class="hint" aria-live="polite">切换到客户参考风格后查找本地图库。</p>
+                <div id="libraryCandidates" class="path-row" hidden>
+                  <select id="libraryCandidateSelect" aria-label="选择发现的图库"></select>
+                  <button class="secondary compact" type="button" id="selectLibraryCandidate">使用此图库</button>
+                </div>
+                <div id="libraryPathFallback" class="path-row" hidden>
+                  <input id="libraryRootPath" autocomplete="off" placeholder="拖入或输入图库根目录路径">
+                  <button class="secondary compact" type="button" id="bindLibraryPath">绑定图库</button>
+                </div>
+                <div id="manualStyleField" class="field">
+                  <label for="styleMaterialsPath">手动参考图目录</label>
+                  <div class="path-row">
+                    <input id="styleMaterialsPath" autocomplete="off" placeholder="例如 E:\\references\\autumn-campaign">
+                    <button class="secondary compact" type="button" id="scanStyleMaterials">扫描风格参考</button>
+                  </div>
                 </div>
                 <p id="styleSelectionSummary" class="hint" aria-live="polite">尚未选择仿照图。</p>
                 <div id="styleMaterialGrid" class="material-grid" role="group" aria-label="仿照图与色彩母版"></div>
@@ -1056,6 +1098,15 @@
     const customerReferencePanel = document.querySelector("#customerReferencePanel");
     const productMaterialsPath = document.querySelector("#productMaterialsPath");
     const styleMaterialsPath = document.querySelector("#styleMaterialsPath");
+    const styleChoice = document.querySelector("#styleChoice");
+    const manualStyleField = document.querySelector("#manualStyleField");
+    const libraryStatus = document.querySelector("#libraryStatus");
+    const libraryCandidates = document.querySelector("#libraryCandidates");
+    const libraryCandidateSelect = document.querySelector("#libraryCandidateSelect");
+    const libraryPathFallback = document.querySelector("#libraryPathFallback");
+    const libraryRootPath = document.querySelector("#libraryRootPath");
+    const pickLibraryButton = document.querySelector("#pickLibrary");
+    const refreshLibraryButton = document.querySelector("#refreshLibrary");
     const productMaterialGrid = document.querySelector("#productMaterialGrid");
     const styleMaterialGrid = document.querySelector("#styleMaterialGrid");
     const colorPriority = document.querySelector("#colorPriority");
@@ -1066,6 +1117,16 @@
     const selectedMaterialIds = { product: [], style: [] };
     let colorMasterId = "";
     let taskToken = "";
+    let libraryReady = false;
+    let activeStyleDirectory = "";
+    let pickerPending = false;
+    let discoverySerial = 0;
+
+    function cleanManualPath(value) {
+      const trimmed = value.trim();
+      return trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')
+        ? trimmed.slice(1, -1) : trimmed;
+    }
 
     function setStatus(message, kind = "") {
       statusEl.className = `statusbar ${kind}`.trim();
@@ -1120,6 +1181,8 @@
         const preview = document.createElement("img");
         preview.src = image.previewUrl;
         preview.alt = image.name;
+        preview.loading = "lazy";
+        preview.decoding = "async";
         const label = document.createElement("span");
         label.textContent = `${selectionIndex === -1 ? "" : `${selectionIndex + 1}. `}${image.name}`;
         label.title = image.name;
@@ -1180,9 +1243,166 @@
       }
     }
 
+    async function libraryRequest(path, { method = "GET", body = null, params = {} } = {}) {
+      if (!taskToken) {
+        await loadTaskToken();
+      }
+      const query = new URLSearchParams({ ...params, token: taskToken });
+      const response = await fetch(`${path}?${query.toString()}`, {
+        method,
+        headers: body ? { "Content-Type": "application/json" } : {},
+        body: body ? JSON.stringify(body) : null
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "图库操作失败");
+      }
+      return result;
+    }
+
+    function clearStyleSelection() {
+      materials.style = [];
+      selectedMaterialIds.style = [];
+      colorMasterId = "";
+      activeStyleDirectory = "";
+      renderMaterialGrid("style");
+    }
+
+    async function loadStyleImages(preserveSelection) {
+      const selectedValue = styleChoice.value;
+      const requestedStyle = selectedValue.slice("style:".length);
+      const selectedNames = preserveSelection
+        ? selectedMaterialIds.style.map((id) => materials.style.find((image) => image.id === id)?.name).filter(Boolean)
+        : [];
+      const masterName = preserveSelection
+        ? materials.style.find((image) => image.id === colorMasterId)?.name : "";
+      const result = await libraryRequest("/library/images", { params: { style: requestedStyle } });
+      if (!isCustomerReferenceMode() || styleChoice.value !== selectedValue) {
+        return;
+      }
+      materials.style = result.images;
+      activeStyleDirectory = result.directory;
+      selectedMaterialIds.style = selectedNames
+        .map((name) => result.images.find((image) => image.name === name)?.id)
+        .filter(Boolean);
+      colorMasterId = result.images.find((image) => image.name === masterName)?.id || "";
+      renderMaterialGrid("style");
+      const removed = selectedNames.length - selectedMaterialIds.style.length;
+      if (removed || (masterName && !colorMasterId)) {
+        setStatus(`刷新后有 ${removed} 张仿照图失效${masterName && !colorMasterId ? "，色彩母版也已失效" : ""}；请重新选择。`, "error");
+      } else {
+        setStatus(result.truncated ? "style 已读取；超过展示上限的图片未显示。" : "style 图片已读取。", "ok");
+      }
+    }
+
+    async function refreshStyles() {
+      const previousChoice = styleChoice.value;
+      const result = await libraryRequest("/library/styles");
+      if (!isCustomerReferenceMode()) {
+        return;
+      }
+      libraryReady = true;
+      libraryStatus.textContent = `当前图库：${result.libraryName}。选择 style 后展示其直属图片。`;
+      libraryCandidates.hidden = true;
+      libraryPathFallback.hidden = true;
+      styleChoice.replaceChildren(new Option("手动指定参考图", "manual"));
+      result.styles.forEach((style) => {
+        const option = new Option(
+          style.disabledReason ? `${style.name}（${style.disabledReason}）` : style.name,
+          `style:${style.name}`
+        );
+        option.disabled = Boolean(style.disabledReason);
+        styleChoice.add(option);
+      });
+      const chosenStyle = result.styles.find((style) => `style:${style.name}` === previousChoice);
+      if (chosenStyle && !chosenStyle.disabledReason) {
+        styleChoice.value = previousChoice;
+        manualStyleField.hidden = true;
+        await loadStyleImages(true);
+      } else {
+        styleChoice.value = "manual";
+        manualStyleField.hidden = false;
+        if (previousChoice !== "manual") {
+          clearStyleSelection();
+          setStatus("原 style 已不存在或没有可用图片，请重新选择。", "error");
+        }
+      }
+    }
+
+    async function pickLibrary() {
+      if (pickerPending) {
+        return;
+      }
+      discoverySerial += 1;
+      pickerPending = true;
+      pickLibraryButton.disabled = true;
+      refreshLibraryButton.disabled = true;
+      libraryStatus.textContent = "正在打开文件夹选择框；取消后仍可手动指定参考图。";
+      try {
+        const result = await libraryRequest("/library/pick", { method: "POST" });
+        if (result.status === "cancelled") {
+          libraryStatus.textContent = "已取消选择；可以继续手动指定参考图。";
+          return;
+        }
+        styleChoice.value = "manual";
+        manualStyleField.hidden = false;
+        clearStyleSelection();
+        await refreshStyles();
+      } catch (error) {
+        if (error.message === "no_desktop") {
+          libraryPathFallback.hidden = false;
+          libraryStatus.textContent = "当前没有桌面选择框，可拖入或输入图库根目录路径。";
+        } else if (error.message === "picker_busy") {
+          libraryStatus.textContent = "已有图库选择窗口打开，请先完成当前选择。";
+        } else {
+          libraryStatus.textContent = `选择图库失败：${error.message}`;
+        }
+      } finally {
+        pickerPending = false;
+        pickLibraryButton.disabled = false;
+        refreshLibraryButton.disabled = false;
+      }
+    }
+
+    async function discoverLibrary() {
+      if (pickerPending) {
+        return;
+      }
+      const requestSerial = ++discoverySerial;
+      libraryStatus.textContent = "正在查找本地图库...";
+      try {
+        const result = await libraryRequest("/library/discover");
+        if (!isCustomerReferenceMode() || requestSerial !== discoverySerial || pickerPending) {
+          return;
+        }
+        if (result.status === "found") {
+          await refreshStyles();
+        } else if (result.status === "multiple") {
+          libraryReady = false;
+          libraryCandidateSelect.replaceChildren();
+          result.candidates.forEach((candidate) => {
+            libraryCandidateSelect.add(new Option(`${candidate.name} — ${candidate.location}`, candidate.id));
+          });
+          libraryCandidates.hidden = false;
+          libraryStatus.textContent = "找到多个图库，请选择当前使用的图库。";
+        } else {
+          libraryReady = false;
+          libraryStatus.textContent = result.status === "invalid_environment"
+            ? "IMG_LIB 指向的目录没有图库标记，请重新选择图库。"
+            : "未找到图库，请选择图库根目录。";
+          await pickLibrary();
+        }
+      } catch (error) {
+        if (requestSerial !== discoverySerial) {
+          return;
+        }
+        libraryStatus.textContent = `查找图库失败：${error.message}；仍可手动指定参考图。`;
+      }
+    }
+
     async function scanMaterials(kind) {
       const pathInput = kind === "product" ? productMaterialsPath : styleMaterialsPath;
-      const directory = pathInput.value.trim();
+      const directory = cleanManualPath(pathInput.value);
       if (!directory) {
         setStatus("请先填写本地素材目录。", "error");
         return;
@@ -1198,6 +1418,7 @@
         if (!response.ok) {
           throw new Error(result.error || "扫描失败");
         }
+        pathInput.value = directory;
         materials[kind] = result.images;
         selectedMaterialIds[kind] = [];
         if (kind === "style") {
@@ -1225,7 +1446,8 @@
           sellingPoints: fieldValue("sellingPoints"),
           avoidExpressions: fieldValue("avoidExpressions"),
           additionalNotes: fieldValue("additionalNotes"),
-          productInfoPath: fieldValue("productInfoPath")
+          productInfoPath: isCustomerReferenceMode()
+            ? cleanManualPath(fieldValue("productInfoPath")) : fieldValue("productInfoPath")
         },
         taskOptions: {
           countryLanguage: fieldValue("countryLanguage"),
@@ -1242,8 +1464,8 @@
           extraRequirements: fieldValue("extraRequirements")
         },
         referenceWorkflow: isCustomerReferenceMode() ? {
-          productMaterialsDirectory: productMaterialsPath.value.trim(),
-          styleMaterialsDirectory: styleMaterialsPath.value.trim(),
+          productMaterialsDirectory: cleanManualPath(productMaterialsPath.value),
+          styleMaterialsDirectory: activeStyleDirectory || cleanManualPath(styleMaterialsPath.value),
           productImageIds: [...selectedMaterialIds.product],
           styleReferenceIds: [...selectedMaterialIds.style],
           colorMasterId,
@@ -1351,11 +1573,80 @@
     });
 
     platform.addEventListener("change", updateConditionalFields);
-    styleSource.addEventListener("change", updateConditionalFields);
+    styleSource.addEventListener("change", () => {
+      updateConditionalFields();
+      if (isCustomerReferenceMode()) {
+        if (libraryReady) {
+          refreshStyles().catch((error) => {
+            libraryReady = false;
+            libraryStatus.textContent = `刷新图库失败：${error.message}`;
+          });
+        } else {
+          discoverLibrary();
+        }
+      } else {
+        discoverySerial += 1;
+        styleChoice.value = "manual";
+        manualStyleField.hidden = false;
+        clearStyleSelection();
+      }
+    });
     extraRequirementMode.addEventListener("change", updateConditionalFields);
     splitProductInfo.addEventListener("click", splitProductText);
     document.querySelector("#scanProductMaterials").addEventListener("click", () => scanMaterials("product"));
     document.querySelector("#scanStyleMaterials").addEventListener("click", () => scanMaterials("style"));
+    styleChoice.addEventListener("change", async () => {
+      clearStyleSelection();
+      manualStyleField.hidden = styleChoice.value !== "manual";
+      if (styleChoice.value !== "manual") {
+        try {
+          await loadStyleImages(false);
+        } catch (error) {
+          setStatus(`读取 style 失败：${error.message}`, "error");
+        }
+      }
+    });
+    refreshLibraryButton.addEventListener("click", async () => {
+      try {
+        if (libraryReady) {
+          await refreshStyles();
+        } else {
+          await discoverLibrary();
+        }
+      } catch (error) {
+        libraryReady = false;
+        libraryStatus.textContent = `刷新图库失败：${error.message}`;
+      }
+    });
+    pickLibraryButton.addEventListener("click", pickLibrary);
+    document.querySelector("#selectLibraryCandidate").addEventListener("click", async () => {
+      try {
+        await libraryRequest("/library/select", {
+          method: "POST",
+          body: { candidateId: libraryCandidateSelect.value }
+        });
+        styleChoice.value = "manual";
+        manualStyleField.hidden = false;
+        clearStyleSelection();
+        await refreshStyles();
+      } catch (error) {
+        libraryStatus.textContent = `绑定图库失败：${error.message}`;
+      }
+    });
+    document.querySelector("#bindLibraryPath").addEventListener("click", async () => {
+      try {
+        await libraryRequest("/library/bind", {
+          method: "POST",
+          body: { directory: cleanManualPath(libraryRootPath.value) }
+        });
+        styleChoice.value = "manual";
+        manualStyleField.hidden = false;
+        clearStyleSelection();
+        await refreshStyles();
+      } catch (error) {
+        libraryStatus.textContent = `绑定图库失败：${error.message}`;
+      }
+    });
 
     selectAllTypes.addEventListener("change", () => {
       imageTypeInputs
@@ -1419,6 +1710,9 @@
         selectedMaterialIds.product = [];
         selectedMaterialIds.style = [];
         colorMasterId = "";
+        activeStyleDirectory = "";
+        styleChoice.value = "manual";
+        manualStyleField.hidden = false;
         colorPriority.value = "auto";
         renderMaterialGrid("product");
         renderMaterialGrid("style");
@@ -1429,6 +1723,9 @@
 
     updateConditionalFields();
     setActivePanel("productPanel");
+    if (isCustomerReferenceMode()) {
+      discoverLibrary();
+    }
   </script>
 </body>
 </html>

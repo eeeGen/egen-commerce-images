@@ -9,19 +9,7 @@ description: Rename and organize ecommerce product images with structured SEO-fr
 
 Use this skill to rename ecommerce product images into structured SEO-friendly filenames for marketplace operations, asset management, and database tracking.
 
-Expected format:
-
-```text
-productcode-##-type-seo-keywords.ext
-```
-
-Example:
-
-```text
-a003-01-hero-flatware-set-32-piece-service-for-8.png
-```
-
-Read `references/naming-standard.md` when the task requires detailed naming rules, rationale, examples, or ambiguous type decisions.
+Before assigning image types or renaming files, read [the naming standard](references/naming-standard.md). It is the canonical source for filename syntax, image-type definitions and order, and examples.
 
 ## Required Workflow
 
@@ -35,35 +23,9 @@ Read `references/naming-standard.md` when the task requires detailed naming rule
    - Also use platform filters, attribute terms, and buyer search phrases.
    - Extract natural phrases instead of keyword stuffing.
    - If exact sales ranking is not exposed, say so and use high-ranking search result keyword research.
-6. Assign image types according to content and the type order below. Files may omit types, and types may repeat.
-7. Rename files with stable temporary names first when target names may collide.
+6. Assign image types according to visual content and the definitions and order in the naming standard. Types may be omitted or repeated.
+7. Follow the naming standard and use stable temporary names first when target names may collide.
 8. Verify the final folder listing, checking sequence, type order, missing or duplicate types, and extensions.
-
-## Type Order
-
-Use this order for numbering when the corresponding image type exists:
-
-| Best Order | Type | Meaning | Placement Logic |
-| --- | --- | --- | --- |
-| 01 | Hero | Main image | 首图先建立产品识别、外观、质感和基础吸引力，是点击入口。 |
-| 02 | Selling | Pain point or selling point image | 第二张直接回答“为什么需要买”，优先放最大痛点或最强卖点。 |
-| 03 | CoreA | Core value scene A | 用第一个核心场景承接卖点，让用户看到产品最主要的使用价值。 |
-| 04 | CoreB | Core value scene B | 补充第二个核心场景，扩大适用人群或使用场景覆盖面。 |
-| 05 | Feature | Function or structure image | 在用户产生兴趣后解释功能、结构、材质、设计细节，建立理性认知。 |
-| 06 | Specs | Size or specification image | 功能之后展示尺寸、容量、数量、规格等硬信息，降低购买不确定性。 |
-| 07 | Value | Differentiated value image | 进一步说明差异化价值，强化“为什么选这个而不是普通款”。 |
-| 08 | Compare | Comparison advantage image | 在差异化之后做对比，更容易让用户理解优势和替代品差距。 |
-| 09 | Lifestyle | Scene or result image | 后段展示真实生活效果、氛围或结果，增强代入感和购买想象。 |
-| 10 | Guide | Product use guide | 接近结尾展示使用方式、安装步骤、清洁维护或注意事项，降低售后疑虑。 |
-| 11 | Closing | A+ closing image | 最后一张做品牌感、情绪收束、购买理由总结，形成完整闭环。 |
-
-Use lowercase type tokens in filenames:
-
-```text
-hero, selling, corea, coreb, feature, specs, value, compare, lifestyle, guide, closing
-```
-
-If a type is missing, skip it. If a type repeats, keep the correct display order and make filenames unique with the sequence number.
 
 ## Mercado Libre Keyword Research
 
@@ -87,16 +49,6 @@ Collect keyword signals from top-selling or high-ranking same-category listings 
 - Feature terms, such as `apto para lavavajillas`, `facil limpieza`.
 
 Do not claim a precise top-10 sales ranking unless the source exposes that ranking. If exact sales order is unavailable, describe the work as high-ranking search-result keyword research.
-
-## Filename Rules
-
-- Use lowercase ASCII only.
-- Use hyphens `-` between words.
-- Do not use underscores `_` for SEO filenames.
-- Do not use spaces, Chinese characters, parentheses, commas, or decorative symbols.
-- Keep filenames readable and avoid keyword stuffing.
-- Preserve the real file extension.
-- Keep `productcode-##-type` at the front for sorting and database operations.
 
 ## Database Notes
 

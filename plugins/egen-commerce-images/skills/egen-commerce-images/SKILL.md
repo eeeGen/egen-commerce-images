@@ -17,30 +17,25 @@ After entering that line, users are required to either upload actual photos or r
 
 Keep Step 1 separate from all other information collection. Do not ask for country, platform, style, product details, image types, ratio, quantity, or additional requirements in Step 1.
 
-After Step 1 is complete, collect the original Steps 2-9 primarily with the bundled local browser form service. The service script is at `../../scripts/product_form_server.py` relative to this `SKILL.md` file, inside the plugin root's `scripts/` directory. Start that script as a background process, open its local URL in the Codex in-app Browser when available, have the user fill the HTML form, and call the printed `WAIT_URL` so Codex can automatically wait for the save result and read the task-specific JSON from the returned `jsonPath`. Never start the service with a foreground shell command that waits for `product_form_server.py` to exit. After reading the saved JSON into context, close the local service by calling its `/shutdown` endpoint; if that fails, stop only the printed `PID`. Do not ask the user to copy JSON back into chat.
+After Step 1 is complete, immediately run the bundled browser form workflow in Step 2. A user-provided product-image path completes Step 1. The form attempt is a required gate: launch the service, verify `FORM_URL` responds, and open that URL in the Codex in-app Browser when available before requesting the remaining task options. An unopened service is not evidence that the form is unavailable. Read the saved JSON from `WAIT_URL`; after capturing it, shut down the service. Do not ask the user to copy JSON into chat.
 
-`taskOptions.styleSource` selects the visual workflow. Treat a missing value in legacy JSON as `builtin`. For `builtin`, follow the existing knowledge-style workflow below. For `customer-reference`, read [客户参考风格工作流](references/customer-reference-workflow.md) before parsing the task, planning, or generating; do not mix that mode with built-in style prompts or knowledge images.
+`taskOptions.styleSource` selects the visual workflow. Treat a missing value in legacy JSON as `builtin`. For `builtin`, follow the built-in style-prompt workflow below. For `customer-reference`, read [客户参考风格工作流](references/customer-reference-workflow.md) before parsing the task, planning, or generating; use customer-selected images as the style source without mixing in built-in style prompts.
 
-If the local form service or browser flow is unavailable, fall back to the two fixed Markdown tables: one product information table and one task options table. Markdown tables only simulate an in-chat form; do not claim that Codex provides native dropdown menus. Use numbered options, fixed enum values, and editable `填写` cells instead.
+Use the two Markdown fallback tables only after a concrete service launch, health check, or browser-open attempt fails. Tell the user which attempt failed. An unavailable browser is a fallback condition only when the active environment has no usable browser surface. Markdown tables only simulate an in-chat form; do not claim Codex provides native dropdown menus.
 
 Do not output the product analysis plan until the saved form JSON or fallback tables are filled sufficiently and required task options have passed validation.
 
 ## Image Source Boundary
 
-Strictly distinguish `knowledge` library images from product images uploaded by the user in the current chat.
+Distinguish style sources from the current product's actual/reference images.
 
-- The fixed knowledge root is `E:\e-commerce\knowledge`. Always use this absolute path even when the current working directory is elsewhere.
-- Style reference folders are direct children named `style1`, `style2`, and so on. Each style folder contains one ecommerce visual style represented by `.png`, `.jpg`, or `.jpeg` images.
 - The built-in style prompt document root is `references/style-prompts/` inside this skill folder. These Markdown files are the authoritative style prompt documents for the workflow.
-- Treat `knowledge` images only as references for ecommerce style, composition, information hierarchy, selling-point expression, layout, and design logic.
-- Never treat `knowledge` images as the current product's real photo.
-- Never infer that the user has completed Step 1 from `knowledge` images.
-- Never use the product, facts, dimensions, colors, accessories, functions, brand, or visual details from `knowledge` images as facts about the current product.
+- In customer-reference mode, use the customer's selected style images only for composition, layout, hierarchy, and visual language. They do not establish the current product's facts or appearance and do not satisfy Step 1.
 - The current product must come from newly uploaded product real photos or reference photos in the current chat, or from the user-provided local product-material path. If neither is available, stay at Step 1 and keep asking for an upload or path.
 
 ### Customer Reference Source Mode
 
-When `taskOptions.styleSource` is `customer-reference`, customer-selected local reference images are the only style source. Do not read a built-in style prompt document, use `E:\e-commerce\knowledge`, or apply Type-Specific Reference Selection. Follow [客户参考风格工作流](references/customer-reference-workflow.md) for the shared product references, ordered style references, color-master rule, confirmation gate, and image-generation calls.
+When `taskOptions.styleSource` is `customer-reference`, customer-selected local reference images are the only style source. Do not read a built-in style prompt document or apply built-in prompt selection rules. Follow [客户参考风格工作流](references/customer-reference-workflow.md) for the shared product references, ordered style references, color-master rule, confirmation gate, and image-generation calls.
 
 ### Built-in Style Source Mode
 
@@ -58,19 +53,19 @@ When choosing a style, first let the user choose one available built-in style pr
 - `style6plus` -> `references/style-prompts/STYLE6PLUS_PROMPTS.md` (Feature validation only; read `STYLE6_PROMPTS.md` first for its inherited visual DNA)
 - `stylehero` -> `references/style-prompts/STYLEhero_PROMPTS.md`
 
-Use the selected style prompt document as the primary style, layout, prompt-structure, and visual-DNA reference for final image generation. If matching `knowledge` images also exist under `E:\e-commerce\knowledge`, they are secondary visual references only. Use only the selected style unless the user explicitly changes it.
+Use the selected style prompt document as the only style, layout, prompt-structure, and visual-DNA source for built-in image generation, together with the current product's materials for product facts and appearance. Use only the selected style unless the user explicitly changes it.
 
 `style6plus` is a narrow validation style, not a replacement for `style6`. It supports only the `Feature` image type. For it, first read `STYLE6_PROMPTS.md` for the inherited blue-and-gold visual DNA, then read `STYLE6PLUS_PROMPTS.md` as the authoritative Feature layout, input gate, prompt structure, and acceptance checklist. If a task selects `style6plus` with any image type other than `Feature`, ask the user to select only `Feature` or choose another style before planning.
 
-Within the selected style prompt document, borrow only visual style, composition, information hierarchy, selling-point expression, layout, prompt variables, UI component logic, and design logic. Do not copy any product facts from the style document. If additional matching is useful within the same image type, prefer style sections or examples in this order: same image type, same platform and language, same country/region, same category, similar price band. Briefly state which style/category/type rules were borrowed, without claiming the style document or knowledge library proves any current product fact.
+Within the selected style prompt document, borrow only visual style, composition, information hierarchy, selling-point expression, layout, prompt variables, UI component logic, and design logic. Do not copy any product facts from the style document. If additional matching is useful within the same image type, prefer style sections or examples in this order: same image type, same platform and language, same country/region, same category, similar price band. Briefly state which style/category/type rules were borrowed, without claiming the style document proves any current product fact.
 
 For `style6-v2`, `style6-v3`, and `style6-v3-2`, first create one set-level Coverage Matrix before drafting any per-image prompt. It must map every selected image type to a distinct product presentation, decision question, scene/moment, camera treatment, UI density, and evidence source. For `style6-v3-2`, include the prose-style visual moment and whether the frame is a verified full-set, single-item, or single-component view. When product materials verify a multi-component set or multi-PCS item, schedule at least one single-item/single-component image and do not repeat the full set across every image; a single-item view must not imply that it is sold separately. When the same product is tested in both styles, lock product facts, selected identity references, image types, ratio, country/language, platform, and visible factual copy; change only the selected style document's visual-directing rules. Do not use the presence of multiple product reference images as evidence of a multi-pack, and do not repeat a product lineup across the set.
 
-### Type-Specific Reference Selection
+### Type-Specific Prompt Selection
 
-Use this filename token table to match reference images in the selected style folder:
+Use this image-type token table to select sections in the chosen style prompt document:
 
-| Image type | Filename token |
+| Image type | Prompt token |
 | --- | --- |
 | 主图 | `Hero` |
 | 痛点/卖点图 | `Selling` |
@@ -84,14 +79,12 @@ Use this filename token table to match reference images in the selected style fo
 | 核心价值场景图 B | `CoreB` |
 | 产品使用说明 | `Guide` |
 
-- For every final output, determine the target image type and its filename token before selecting `knowledge` references.
-- In the selected style prompt document, use the section or prompt whose filename/image-type token matches the target type as the concrete prompt reference for that output.
-- If using secondary `knowledge` images, use only `.png`, `.jpg`, and `.jpeg` files whose filename contains the matching token, case-insensitive, as concrete visual references for that output.
-- Do not mix references from other image types. Do not use every section or every image for one output.
-- If no same-type section or reference file exists, do not borrow composition, content, copy, or product presentation from mismatched image types. Create an original layout using the selected style document's general style direction, such as palette, typography feel, visual density, hierarchy, background treatment, UI component language, and ecommerce design logic. Briefly state that no same-type reference was found and the image will innovate within the selected style.
-- For a nonstandard user-supplied image type, map it to the nearest standard type only when the mapping is clear. If there is no clear mapping, treat it as a custom type and innovate from the selected style direction without using mismatched type images as concrete references.
+- For every final output, determine the target image type and its prompt token, then use the matching section or prompt in the selected style document.
+- Use only sections matching that image type, rather than every section for one output.
+- If no same-type section exists, create an original layout using the selected style document's general direction, such as palette, typography feel, visual density, hierarchy, background treatment, UI component language, and ecommerce design logic. Briefly state that no same-type prompt section was found and the image will innovate within the selected style.
+- For a nonstandard user-supplied image type, map it to the nearest standard type only when the mapping is clear. Otherwise, treat it as a custom type and innovate from the selected style direction without borrowing concrete layouts from mismatched types.
 
-If `knowledge` materials appear to come from competitors or third parties, extract only structure, style, expression logic, layout, and hierarchy. Do not copy trademarks, patented product appearance, brand assets, people likenesses, official platform marks, or protected copy. If brand names, IP, celebrities, film/game characters, competitor marks, or platform marks appear, warn about infringement risk and use generic alternatives.
+If customer-selected style references appear to come from competitors or third parties, extract only structure, style, expression logic, layout, and hierarchy. Do not copy trademarks, patented product appearance, brand assets, people likenesses, official platform marks, or protected copy. If brand names, IP, celebrities, film/game characters, competitor marks, or platform marks appear, warn about infringement risk and use generic alternatives.
 
 ## Fixed Workflow
 
@@ -101,24 +94,39 @@ Output the required opening line, then only ask:
 
 `请在当前会话框上传至少一张产品实拍图或参考图，用于校准本次产品的外形、比例、颜色、材质、结构、接口、配件和细节，避免生成偏离实物。`
 
-Do not use `knowledge` images to satisfy this step.
+Complete this step with the current product's actual/reference images.
 
 ### Step 2: Fill Product Task Form
 
-After the user uploads at least one current-chat product image or provides a path to actual/reference product images, use the bundled local form workflow by default:
+After the user uploads at least one current-chat product image or provides a path to actual/reference product images, run the bundled local form workflow:
 
-1. Resolve the plugin root as two directories above this `SKILL.md` file. From the skill folder, the service script path is `..\..\scripts\product_form_server.py`; from the plugin root, it is `.\scripts\product_form_server.py`.
+1. Use the absolute path of the `SKILL.md` file you loaded. Its containing directory is the skill folder; resolve `..\..\scripts\product_form_server.py` from that folder, independent of the shell's current working directory. Verify the resulting script exists.
 
-2. Start the local service as a background process with the resolved script path. Prefer the Codex bundled Python executable from `codex_app.load_workspace_dependencies` when available; otherwise use a verified local `python` or `py` command. Do not run `python ..\..\scripts\product_form_server.py` as a foreground command.
+2. Start the local service as a background process. Prefer the Codex bundled Python executable from `codex_app.load_workspace_dependencies` when available; otherwise use a verified local `python` or `py` command. Use a unique log filename for this form session. Wait until the process prints `FORM_URL` and `/health` responds; this is the startup completion criterion. Do not run the server in the foreground.
 
 ```powershell
-$script = Resolve-Path '..\..\scripts\product_form_server.py'
-$out = Join-Path $env:TEMP 'egen-commerce-images-form.out.log'
-$err = Join-Path $env:TEMP 'egen-commerce-images-form.err.log'
-Start-Process -WindowStyle Hidden -FilePath python -ArgumentList @($script) -RedirectStandardOutput $out -RedirectStandardError $err -PassThru
-Start-Sleep -Seconds 1
-Get-Content -LiteralPath $out -Raw -ErrorAction SilentlyContinue
-Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
+$skillFile = '<absolute path of the SKILL.md file just loaded>'
+$skillDir = Split-Path -Parent $skillFile
+$script = (Resolve-Path -LiteralPath (Join-Path $skillDir '..\..\scripts\product_form_server.py')).Path
+$pythonExe = (Get-Command python -ErrorAction Stop).Source
+$tag = [guid]::NewGuid().ToString('N')
+$out = Join-Path $env:TEMP "egen-commerce-images-form-$tag.out.log"
+$err = Join-Path $env:TEMP "egen-commerce-images-form-$tag.err.log"
+$proc = Start-Process -WindowStyle Hidden -FilePath $pythonExe -ArgumentList @('-B', "`"$script`"") -RedirectStandardOutput $out -RedirectStandardError $err -PassThru
+$log = ''
+for ($i = 0; $i -lt 20; $i++) {
+    Start-Sleep -Milliseconds 250
+    $log = Get-Content -LiteralPath $out -Raw -ErrorAction SilentlyContinue
+    if ($log -match '(?m)^FORM_URL=' -or $proc.HasExited) { break }
+}
+if ($log -notmatch '(?m)^FORM_URL=(\S+)') {
+    Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
+    throw "Form server did not publish FORM_URL (PID $($proc.Id))."
+}
+$formUrl = $Matches[1]
+$health = Invoke-RestMethod -Uri ($formUrl.TrimEnd('/') + '/health') -TimeoutSec 3
+if (-not $health.ok) { throw "Form server health check failed: $formUrl" }
+$log
 ```
 
 3. Read the printed `FORM_URL`, `LATEST_URL`, `WAIT_URL`, `JSON_DIR`, `TASK_ID`, and `PID`.
@@ -127,9 +135,9 @@ Get-Content -LiteralPath $err -Raw -ErrorAction SilentlyContinue
 6. In parallel with the user filling the browser form, call `WAIT_URL` or `GET <FORM_URL base>/wait?timeout=600`. When it returns, read the returned `jsonPath`. Do not require the user to manually type `已保存`.
 7. If `/wait` times out or cannot be reached, ask the user to confirm after clicking `保存表单`, then read the current task result from `LATEST_URL`.
 
-The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans customer-provided local product and style directories, lets the customer click multiple product and imitation images, and lets them mark a separate color mother image. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
+The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans the product directory and offers a style menu from the bound local image library alongside a manual reference-directory option. The user selects ordered imitation images and one color mother image. If the library cannot be found, the form opens a system folder chooser; the manual reference option remains available after cancellation. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
 
-If the startup command returns exit code `124`, if the log does not contain `FORM_URL`, or if the printed `PID` is no longer running, treat the startup as failed and retry with a background `Start-Process` command before opening the browser. If the service cannot start or the browser cannot be used, output the following two fixed Markdown tables in one message as a fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
+If startup fails, inspect this session's error log and retry once with the verified absolute script and Python paths. If the process starts but the browser cannot open `FORM_URL`, attempt the available in-app browser surface and record the concrete failure. Only after these attempts fail, output the following two fixed Markdown tables in one message and state the failure that triggered the fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
 #### Fallback 产品信息表
 
@@ -163,6 +171,8 @@ If the startup command returns exit code `124`, if the log does not contain `FOR
 | 额外生图要求 | 1 无额外要求；2 填写额外要求 | 1 |
 
 For a Markdown fallback in customer-reference mode, collect an ordered list of `外形参考图路径` and an ordered list of `仿照图路径`, plus one `全局色彩母版路径` and one global `色彩策略` (`auto`/`master`/`scene`). The mother image may be outside the imitation list. The user selects every image; preserve the imitation-list order.
+
+For every customer-reference path supplied manually, including the Markdown fallback lists, color master, and optional product-information document, trim outer whitespace and then remove one complete pair of surrounding ASCII double quotes. Preserve all characters inside the path. Do not add a path-existence check to this string cleanup; existing material-reading steps still perform their normal scans and reads.
 
 Do not proceed until the required task options are filled. Built-in mode requires target country/language, platform, knowledge style, image types, ratio, and quantity per type. Customer-reference mode requires target country/language, platform, global ratio, at least one product reference, at least one imitation reference, and a color mother path. Defaults are English and Spanish, but accept additional languages when the user supplies them.
 
@@ -211,9 +221,7 @@ Expected saved JSON shape:
 }
 ```
 
-For schema v4 `customer-reference`, `referenceWorkflow` contains ordered `productImageIds[]` and `styleReferenceIds[]`, `colorMasterId`, global `colorPriority`, and their server-resolved `productImagePaths[]`, `styleReferencePaths[]`, and `colorMasterPath`. The ID arrays represent user selections; use only resolved paths for generation.
-
-For `customer-reference`, `knowledgeStyle`, `imageTypes`, and `quantityPerType` are not generation requirements. In schema v4, require the server-resolved `referenceWorkflow.productImagePaths` and ordered `referenceWorkflow.styleReferencePaths` to each contain at least one path, plus `referenceWorkflow.colorMasterPath` and a valid global `colorPriority`. For saved schema v3 customer-reference tasks, require `colorMasterPath` and at least one `outputs[]` card with a nonempty name, 1–4 `productImagePaths`, and one `styleReferencePath` per card; keep its per-card mapping. Reject incomplete selections with one focused request for correction. Read [客户参考风格工作流](references/customer-reference-workflow.md) before proceeding.
+For customer-reference JSON, use [the customer reference workflow](references/customer-reference-workflow.md) as the canonical source for schema v3/v4 fields, resolved-path handling, required selections, and legacy-card validation. Reject incomplete selections before planning.
 
 For fallback Markdown tables, parse the user's filled tables and normalize numbered options or fixed enum values. Image types support multiple selections such as `2,3,5`, `Hero,Selling,Specs`, or Chinese image type names.
 
@@ -223,7 +231,7 @@ If the saved JSON or fallback tables use `OTHER` / `其他` for country/language
 
 Do not invent certifications, test results, materials, origin, effects, reviews, authorization, platform endorsement, dimensions, compatibility, accessories, or other product facts. Product information fields may remain `待填写`; clearly separate known facts from assumptions or suggested wording.
 
-State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. In built-in mode, calculate `selected image type count x quantity per type` and batch only when needed. In schema v4 customer-reference mode, generate exactly one final image per confirmed imitation reference, with a separate call for every reference. For legacy v3, retain one image per confirmed output card.
+State that final generation must follow the ratios currently supported by the built-in `image_gen.imagegen` tool. If a chosen ratio is unavailable in the active environment, use the nearest supported ratio only after telling the user. In built-in mode, calculate `selected image type count x quantity per type` and batch only when needed. For customer-reference output count and order, follow the customer reference workflow.
 
 ### Step 10: Analysis Plan and Confirmation
 
@@ -242,11 +250,11 @@ If the user requests changes, output a revised plan and continue waiting for con
 
 ### Step 11: Generate Final Outputs
 
-After the user confirms the final analysis plan, generate the final localized product description and the confirmed ecommerce image set. In built-in mode, generate `selected image type count x quantity per type` images. In customer-reference v4 mode, generate one final image for each confirmed imitation reference, in selection order. For legacy v3, use card order.
+After the user confirms the final analysis plan, generate the final localized product description and confirmed ecommerce image set. In built-in mode, generate `selected image type count x quantity per type` images. For customer-reference modes, follow the referenced workflow's output count and order.
 
-Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. In built-in mode, follow the confirmed knowledge style, image types, ratio, quantity, additional requirements, and Type-Specific Reference Selection. For each final output, use only same-type reference files from the selected style folder; if none exist for that target type, innovate within the selected style direction instead of using mismatched type files. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
+Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. In built-in mode, follow the confirmed built-in style, image types, ratio, quantity, additional requirements, and Type-Specific Prompt Selection. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
 
-In customer-reference mode, follow [客户参考风格工作流](references/customer-reference-workflow.md). For each v4 imitation reference, pass all resolved `productImagePaths` and that one `styleReferencePath` to `image_gen.imagegen` through `referenced_image_paths`; for legacy v3, use each card's mapped references. The product paths directly determine product appearance; do not turn product appearance into text instructions or add unselected product images. The style reference directly determines composition and visual language. A different color mother image may inform only a concise color-direction instruction, never a second style-reference image. Preserve the reference's scene, composition, camera, lighting, information hierarchy, layout rhythm, text position, density, type mood, and generic components as far as possible while replacing the product and all protected or third-party elements. Generate every confirmed image once and deliver all generated results without automatic quality inspection or retry.
+In customer-reference mode, follow [客户参考风格工作流](references/customer-reference-workflow.md) for reference selection, generation calls, prompt constraints, delivery, and archive conventions.
 
 After each final image is generated, copy the selected generated file from the Codex default generated-images location into the product output folder. Copy files; do not move or delete the original generated files, and intentionally keep the Codex default generated-images archive in `$CODEX_HOME/generated_images/...`.
 
