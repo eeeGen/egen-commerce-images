@@ -1,5 +1,57 @@
 # Version Update
 
+## v0.12.0 - 2026-11-06 (待发布)
+
+### 所属 Skill：egen-commerce-images
+
+- 插件版本：`0.11.0+codex.20261021000000` -> `0.12.0+codex.20261106220755`。
+- 版本类型：次版本；新增用户可见的本地图库发现、绑定和图片选择能力。
+- 发布状态：实现已合并并推送到 `main`；正式发布和 `v0.12.0` tag 待办。
+
+### Summary
+
+新增本地图库发现与绑定流程，用户可在产品任务表单中浏览图库风格和图片，并在路径变化时重新发现或手动选择图库。
+
+### Changes
+
+- 新增基于图库标记文件的本地发现、配置绑定、风格列表和文件夹选择能力。
+- 在产品任务表单中加入图库发现、绑定、刷新状态和图片预览；风格图片不再截断到 30 张，并延迟加载缩略图。
+- 防止重复打开图库选择对话框；表单启动与健康检查成为开始任务的门槛，服务从其他当前目录启动时也能定位脚本。
+- 更新插件默认提示和相关 Skill、客户参考工作流及图库设计文档。
+
+### Version And Build
+
+- 插件版本：`0.12.0`
+- 构建标识：`0.12.0+codex.20261106220755`
+- 对应实现提交：`9fd9dd7`。
+
+### Files Updated
+
+- `README.md`
+- `.codex-plugin/plugin.json`
+- `skills/egen-commerce-images/agents/openai.yaml`
+- `assets/product-task-form.html`
+- `scripts/image_library.py`
+- `scripts/product_form_server.py`
+- `scripts/test_image_library.py`
+- `scripts/test_product_form_server.py`
+- `skills/egen-commerce-images/SKILL.md`
+- `skills/egen-commerce-images/agents/openai.yaml`
+- `skills/egen-commerce-images/references/customer-reference-workflow.md`
+- `skills/seo-naming/SKILL.md`
+- `skills/seo-naming/references/naming-standard.md`
+- `docs/图库设计.md`
+- `docs/VERSION_UPDATE.md`
+- `docs/plan-archives/2026-11-06-v0.12.0-image-library-workflow.md`
+- `docs/plan-archives/2026-10-21-v0.11.0-customer-reference-selection.md`
+- `docs/plan-archives/2026-10-21-v0.11.0-extract-product-info-image-reading-fixes.md`
+- `docs/RELEASE_NOTES.md`
+
+### Validation Note
+
+- 用户已确认实现测试通过并可用；本次版本文档整理未重跑测试。
+- 正式发布 tag 创建前，仍需完成发布确认。
+
 ## v0.11.0 - 2026-10-21
 
 ### 所属 Skill：egen-commerce-images
