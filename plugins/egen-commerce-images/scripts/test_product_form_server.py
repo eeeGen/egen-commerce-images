@@ -61,9 +61,10 @@ class CustomerReferenceWorkflowTests(unittest.TestCase):
                 f"p{index}": {"kind": "product", "name": f"{index}.jpg", "path": f"C:/product/{index}.jpg"}
                 for index in range(1, 7)
             },
-            "s1": {"kind": "style", "name": "first.jpg", "path": "C:/style/first.jpg"},
-            "s2": {"kind": "style", "name": "second.jpg", "path": "C:/style/second.jpg"},
-            "master": {"kind": "style", "name": "palette.jpg", "path": "C:/style/palette.jpg"},
+            "s1": {"kind": "style", "scanId": "current", "name": "first.jpg", "path": "C:/style/first.jpg"},
+            "s2": {"kind": "style", "scanId": "current", "name": "second.jpg", "path": "C:/style/second.jpg"},
+            "master": {"kind": "style", "scanId": "current", "name": "palette.jpg", "path": "C:/style/palette.jpg"},
+            "font": {"kind": "style", "scanId": "current", "name": "type.jpg", "path": "C:/style/type.jpg"},
         }
 
     def payload(self, **overrides: object) -> dict:
@@ -91,6 +92,40 @@ class CustomerReferenceWorkflowTests(unittest.TestCase):
         self.assertEqual(workflow["styleReferencePaths"], ["C:/style/second.jpg", "C:/style/first.jpg"])
         self.assertEqual(workflow["colorMasterPath"], "C:/style/palette.jpg")
         self.assertNotIn("C:/style/palette.jpg", workflow["styleReferencePaths"])
+
+    def test_font_master_resolves_independently_of_imitation_and_color_roles(self) -> None:
+        for material_id in ("font", "s2", "master"):
+            with self.subTest(material_id=material_id):
+                payload = self.payload(fontMasterId=material_id, fontMasterPath="C:/forged.jpg")
+                workflow = server.resolve_customer_reference_workflow(payload, self.catalog)["referenceWorkflow"]
+                self.assertEqual(workflow["fontMasterPath"], self.catalog[material_id]["path"])
+                self.assertEqual(workflow["fontMasterId"], material_id)
+                self.assertEqual(workflow["styleReferenceIds"], ["s2", "s1"])
+                self.assertEqual(workflow["colorMasterPath"], "C:/style/palette.jpg")
+
+    def test_omitted_or_cleared_font_master_ignores_browser_path(self) -> None:
+        for fields in ({}, {"fontMasterId": ""}, {"fontMasterId": None}):
+            with self.subTest(fields=fields):
+                payload = self.payload(**fields, fontMasterPath="C:/unselected.jpg")
+                workflow = server.resolve_customer_reference_workflow(payload, self.catalog)["referenceWorkflow"]
+                self.assertNotIn("fontMasterPath", workflow)
+                self.assertNotIn("fontMasterId", workflow)
+
+    def test_font_master_must_belong_to_current_style_scan(self) -> None:
+        self.catalog["stale"] = {**self.catalog["font"], "scanId": "old"}
+        for invalid_id in ("stale", "p1", "unknown", [], False):
+            with self.subTest(invalid_id=invalid_id), self.assertRaises(ValueError):
+                server.resolve_customer_reference_workflow(self.payload(fontMasterId=invalid_id), self.catalog)
+
+    def test_font_selection_stays_in_the_style_directory_for_catalogs_without_scan_ids(self) -> None:
+        for material in self.catalog.values():
+            material.pop("scanId", None)
+        payload = self.payload(fontMasterId="font")
+        workflow = server.resolve_customer_reference_workflow(payload, self.catalog)["referenceWorkflow"]
+        self.assertEqual(workflow["fontMasterPath"], self.catalog["font"]["path"])
+        self.catalog["font"]["path"] = "C:/other-style/type.jpg"
+        with self.assertRaises(ValueError):
+            server.resolve_customer_reference_workflow(payload, self.catalog)
 
     def test_rejects_missing_duplicate_or_wrong_kind_materials(self) -> None:
         invalid_workflows = [

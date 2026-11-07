@@ -80,6 +80,7 @@ Use this image-type token table to select sections in the chosen style prompt do
 | 产品使用说明 | `Guide` |
 
 - For every final output, determine the target image type and its prompt token, then use the matching section or prompt in the selected style document.
+- The confirmed shot row controls what enters the frame. Fill the style template's product, `{selling_points}` and `{accessories}` slots with just that row's subject and evidence. On a core selling-point image, replace generic counts of benefits with the one approved point. Use an overall product view or inset only when the row calls for it. Keep the style's visual language and the selected image type's purpose.
 - Use only sections matching that image type, rather than every section for one output.
 - If no same-type section exists, create an original layout using the selected style document's general direction, such as palette, typography feel, visual density, hierarchy, background treatment, UI component language, and ecommerce design logic. Briefly state that no same-type prompt section was found and the image will innovate within the selected style.
 - For a nonstandard user-supplied image type, map it to the nearest standard type only when the mapping is clear. Otherwise, treat it as a custom type and innovate from the selected style direction without borrowing concrete layouts from mismatched types.
@@ -135,7 +136,7 @@ $log
 6. In parallel with the user filling the browser form, call `WAIT_URL` or `GET <FORM_URL base>/wait?timeout=600`. When it returns, read the returned `jsonPath`. Do not require the user to manually type `已保存`.
 7. If `/wait` times out or cannot be reached, ask the user to confirm after clicking `保存表单`, then read the current task result from `LATEST_URL`.
 
-The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans the product directory and offers a style menu from the bound local image library alongside a manual reference-directory option. The user selects ordered imitation images and one color mother image. If the library cannot be found, the form opens a system folder chooser; the manual reference option remains available after cancellation. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
+The browser form provides target country/language, platform, style-source mode, ratio, and extra requirement options. Built-in mode retains knowledge style, image types, and quantity. Customer-reference mode scans the product directory and offers a style menu from the bound local image library alongside a manual reference-directory option. From the displayed style images the user selects ordered imitation images, one required color master and an optional font master. If the library cannot be found, the form opens a system folder chooser; the manual reference option remains available after cancellation. It saves each submission to a task-specific JSON file under `%TEMP%\egen-commerce-images\tasks\product-task-YYYYMMDD-HHMMSS-<taskId>-<saveCount>.json`, so different form sessions do not conflict. Runtime form results must stay outside the repository; do not commit generated JSON files.
 
 If startup fails, inspect this session's error log and retry once with the verified absolute script and Python paths. If the process starts but the browser cannot open `FORM_URL`, attempt the available in-app browser surface and record the concrete failure. Only after these attempts fail, output the following two fixed Markdown tables in one message and state the failure that triggered the fallback. Tell the user they can copy the tables and modify only the `填写` column. Use the current-chat product image to provide a few candidate product information values where visible; mark unknown fields as `待填写`. 允许用户指定产品信息文档路径（如有）.
 
@@ -168,11 +169,12 @@ If startup fails, inspect this session's error log and retry once with the verif
 | 图片类型（仅内置风格） | 1 全选；2 Hero；3 Selling；4 Feature；5 Specs；6 Lifestyle；7 Value；8 Compare；9 Closing；10 CoreA；11 CoreB；12 Guide；13 其他：请填写 | 待填写 |
 | 图片比例 | 1 1:1；2 4:5；3 3:4；4 16:9；5 9:16 | 待填写 |
 | 每类数量（仅内置风格） | 1；2；4；6；10 | 待填写 |
+| 字体母版（仅客户参考风格，选填） | 当前风格图片中的一张，填写路径；留空则各图沿用自己的仿照图字体 | 无 |
 | 额外生图要求 | 1 无额外要求；2 填写额外要求 | 1 |
 
-For a Markdown fallback in customer-reference mode, collect an ordered list of `外形参考图路径` and an ordered list of `仿照图路径`, plus one `全局色彩母版路径` and one global `色彩策略` (`auto`/`master`/`scene`). The mother image may be outside the imitation list. The user selects every image; preserve the imitation-list order.
+For a Markdown fallback in customer-reference mode, collect the ordered `外形参考图路径` and `仿照图路径`, one `全局色彩母版路径`, one `色彩策略` (`auto`/`master`/`scene`), and the optional font master from the table. Treat a missing field, a blank or `无` as no font master. For a supplied font path, clean it as below and check it against the direct image candidates in the same selected style or manual style directory as the imitation images. If outside that selection, ask for a current candidate or a clear selection. A master can also be an imitation or share the other master's file. Only the ordered imitation list determines output count.
 
-For every customer-reference path supplied manually, including the Markdown fallback lists, color master, and optional product-information document, trim outer whitespace and then remove one complete pair of surrounding ASCII double quotes. Preserve all characters inside the path. Do not add a path-existence check to this string cleanup; existing material-reading steps still perform their normal scans and reads.
+For every customer-reference path supplied manually, including the Markdown fallback lists, color and font masters, and optional product-information document, trim outer whitespace and then remove one complete pair of surrounding ASCII double quotes. Preserve all characters inside the path. Do not add a path-existence check to this string cleanup; existing material-reading steps still perform their normal scans and reads.
 
 Do not proceed until the required task options are filled. Built-in mode requires target country/language, platform, knowledge style, image types, ratio, and quantity per type. Customer-reference mode requires target country/language, platform, global ratio, at least one product reference, at least one imitation reference, and a color mother path. Defaults are English and Spanish, but accept additional languages when the user supplies them.
 
@@ -244,13 +246,18 @@ Only after Step 1 is complete and the Step 2 saved form JSON or fallback tables 
 - 电商标题建议：关键词优化版
 - 电商标题建议：卖点突出版
 - 合规提醒
-- 套图生成范围：平台、国家/语言、比例、补充要求，以及以下之一：内置 mode 的 knowledge style、图片类型与每类数量；客户参考 v4 的共用外形参考图、按生成顺序排列的仿照图、色彩母版、全局色彩策略与文案草案；旧版 v3 的逐卡配方。
+- 套图生成范围包括平台、国家/语言、比例与补充要求。内置模式列出 knowledge style、图片类型与每类数量。客户参考模式按[客户参考风格工作流](references/customer-reference-workflow.md)列出选图、母版、色彩策略和文案。旧 v3 沿用逐卡配方。
+- 两种模式都在同一份总览里按实际出图顺序列出逐图取景表。每行写明「图位｜用途或核心卖点｜画面主体｜景别与角度｜实物依据（参考图文件名或上传序号，以及能看见的部位）」。每张成图一行，包括同一类型的多个变体。已有 Coverage Matrix 的内置风格把这些列并入原表。
+
+Compare the rows before presenting them. Assign full product, full kit, single item, individual accessory, detail or use views according to the buying question. For a verified kit with a suitable slot and a recognizable component, assign at least one row to that component alone. A single-item product can support detail and use views. If rows repeat the same lineup and angle with only different copy or backgrounds, revise the shot. Full-kit views follow their purpose or an explicit user request. Use only visible features and supported angles. A single-component view retains the confirmed sale unit. In a core selling-point row, one verified benefit determines the subject and crop. Single-image tasks need only their own row.
 
 If the user requests changes, output a revised plan and continue waiting for confirmation. Do not generate any image until the user clearly confirms the final plan.
 
 ### Step 11: Generate Final Outputs
 
 After the user confirms the final analysis plan, generate the final localized product description and confirmed ecommerce image set. In built-in mode, generate `selected image type count x quantity per type` images. For customer-reference modes, follow the referenced workflow's output count and order.
+
+In **each image's initial generation prompt**, bind its confirmed row to the real reference by name or index. State the one subject or kit relationship that belongs in frame, its crop and angle, the supporting visible feature and the verified point it illustrates. For example, a connector-detail row uses the visible connector from the full-kit reference as the sole focal subject. Use the same real product references to calibrate appearance across the set. Deliver the confirmed slots after this first pass.
 
 Use the built-in `image_gen.imagegen` tool for image generation. Do not call external image-generation APIs, do not write scripts that invoke image APIs, and do not ask the user for API keys. In built-in mode, follow the confirmed built-in style, image types, ratio, quantity, additional requirements, and Type-Specific Prompt Selection. Preserve the product shape, proportions, color, material, structure, ports, accessories, and details from the user-uploaded current-chat product images.
 

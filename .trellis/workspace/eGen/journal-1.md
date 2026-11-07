@@ -147,3 +147,129 @@ Topics: [.trellis/spec/customer-reference-library.md](../../spec/customer-refere
 ### Status
 
 [OK] **Completed**
+
+
+## Session 7: 记录表单硬门槛方案边界
+<!-- trellis-session: v=2 fp=a5d0bc3b450bca14 -->
+
+**Date**: 2026-11-06
+**Task**: 记录表单硬门槛方案边界
+**Branch**: `feature/new-work`
+
+### Summary
+
+核对 Codex hook、MCP 和插件本地结构；记录已核实的事件与信任限制，以及表单先行入口、hook 补强、MCP 接口三种尚未确认采用的方案。未实施架构变更。
+Topics: [.trellis/research/form-intake-hard-gate.md](../../research/form-intake-hard-gate.md)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 8: 版本管理并发布 v0.12.0
+<!-- trellis-session: v=2 fp=8b0a6874bba1e340 -->
+
+**Date**: 2026-11-06
+**Task**: 版本管理并发布 v0.12.0
+**Branch**: `feature/new-work`
+
+### Summary
+
+补齐 v0.12.0 manifest、版本记录、更新说明和版本计划；用户确认正式发布后创建并推送轻量 tag v0.12.0，指向提交 4e170a0，main 与 origin/main 对齐。记录本地测试市场改名只用于测试，不同步到 main。
+Topics: [.trellis/spec/plugin-release-management.md](../../spec/plugin-release-management.md)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 9: 确认高定字体母版与套图逐图取景规范
+<!-- trellis-session: v=2 fp=7e7e8e982aa496a0 -->
+
+**Date**: 2026-11-07
+**Task**: 确认高定字体母版与套图逐图取景规范
+**Branch**: `feature/new-work`
+
+### Summary
+
+经两轮需求确认，将高定选填字体母版的来源、回退及字形验收写入原 spec，另建两种模式共用的首轮逐图取景 spec。表单、生成 prompt 与样图验收留待实现。
+Topics: [.trellis/spec/customer-reference-library.md](../../spec/customer-reference-library.md), [.trellis/spec/image-set-shot-planning.md](../../spec/image-set-shot-planning.md)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 10: 实现并验收高定字体母版与套图逐图取景
+<!-- trellis-session: v=2 fp=85dc7bb0eb0ee96b -->
+
+**Date**: 2026-11-07
+**Task**: 实现并验收高定字体母版与套图逐图取景
+**Branch**: `feature/new-work`
+
+### Summary
+
+v0.13.0 工作区接通选填字体母版及两种模式的逐图初始 prompt，保留 schema v4。21 项测试通过，真实表单保存和刷新已验证。同一合成套装参考在高定三图和内置 style1 两图的首轮生成中实现了各自的取景。版本待发布。
+Topics: [.trellis/spec/customer-reference-library.md](../../spec/customer-reference-library.md), [.trellis/spec/image-set-shot-planning.md](../../spec/image-set-shot-planning.md)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 11: 补齐 v0.13.0 验收依据与会话交接
+<!-- trellis-session: v=2 fp=328feaebc585edaf -->
+
+**Date**: 2026-11-07
+**Task**: 补齐 v0.13.0 验收依据与会话交接
+**Branch**: `feature/new-work`
+
+### Summary
+
+按用户要求补充字体母版与套图取景的测试命令、实测范围及本机样图位置，并从现有 spec 链接到验收记录。实现位于 feature/new-work，构建 0.13.0+codex.20261107021908，版本文档状态为待发布。
+Topics: [.trellis/research/font-master-shot-planning-validation.md](../../research/font-master-shot-planning-validation.md), [.trellis/spec/image-set-shot-planning.md](../../spec/image-set-shot-planning.md)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 12: 确认 v0.13.0 正式发布与 Git 流程
+<!-- trellis-session: v=2 fp=273fe795168483ab -->
+
+**Date**: 2026-11-07
+**Task**: 确认 v0.13.0 正式发布与 Git 流程
+**Branch**: `feature/new-work`
+
+### Summary
+
+用户明确要求发布、提交、推送并合并到 main。版本文档已同步正式发布状态，轻量 tag 使用 v0.13.0。本轮发布带入两项优化、已验证的 spec 和验收记录，提交使用正式市场名。
+Topics: [.trellis/research/font-master-shot-planning-validation.md](../../research/font-master-shot-planning-validation.md), [.trellis/spec/plugin-release-management.md](../../spec/plugin-release-management.md)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Status
+
+[OK] **Completed**

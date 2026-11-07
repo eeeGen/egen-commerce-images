@@ -172,6 +172,17 @@ def resolve_customer_reference_workflow(
         "styleReferencePaths": [image["path"] for image in style_references],
         "colorMasterPath": color_master["path"],
     }
+    font_master_id = workflow.get("fontMasterId")
+    if font_master_id not in (None, ""):
+        font_master = require_material(font_master_id, "style")
+        font_directory = Path(font_master["path"]).parent
+        if any(
+            image.get("scanId") != font_master.get("scanId") or Path(image["path"]).parent != font_directory
+            for image in [*style_references, color_master]
+        ):
+            raise ValueError("font_master_outside_style_selection")
+        resolved_workflow["fontMasterId"] = font_master_id
+        resolved_workflow["fontMasterPath"] = font_master["path"]
     resolved_payload["referenceWorkflow"] = resolved_workflow
     product_info = payload.get("productInfo")
     if isinstance(product_info, dict):
@@ -235,9 +246,11 @@ def make_handler(
 
         def _register_images(self, scan_result: dict[str, Any], kind: str) -> dict[str, Any]:
             images = []
+            scan_id = uuid.uuid4().hex
             for image in scan_result["images"]:
                 material_catalog[image["id"]] = {
                     "kind": kind,
+                    "scanId": scan_id,
                     "name": image["name"],
                     "path": image["path"],
                 }

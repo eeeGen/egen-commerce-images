@@ -1047,7 +1047,7 @@
                   </div>
                 </div>
                 <p id="styleSelectionSummary" class="hint" aria-live="polite">尚未选择仿照图。</p>
-                <div id="styleMaterialGrid" class="material-grid" role="group" aria-label="仿照图与色彩母版"></div>
+                <div id="styleMaterialGrid" class="material-grid" role="group" aria-label="仿照图、色彩母版与字体母版"></div>
               </div>
               <div class="field">
                 <label for="colorPriority">全局色彩策略</label>
@@ -1059,6 +1059,7 @@
               </div>
               <div class="field full">
                 <p id="colorMasterSummary" class="hint" aria-live="polite">请在风格图片下点击“设为色彩母版”；母版可以不在仿照清单中。</p>
+                <p id="fontMasterSummary" class="hint" aria-live="polite">字体母版选填。留空时，各图沿用自己的仿照图字体。</p>
               </div>
             </div>
           </section>
@@ -1111,16 +1112,18 @@
     const styleMaterialGrid = document.querySelector("#styleMaterialGrid");
     const colorPriority = document.querySelector("#colorPriority");
     const colorMasterSummary = document.querySelector("#colorMasterSummary");
+    const fontMasterSummary = document.querySelector("#fontMasterSummary");
     const productSelectionSummary = document.querySelector("#productSelectionSummary");
     const styleSelectionSummary = document.querySelector("#styleSelectionSummary");
     const materials = { product: [], style: [] };
     const selectedMaterialIds = { product: [], style: [] };
-    let colorMasterId = "";
+    const masterIds = { color: "", font: "" };
     let taskToken = "";
     let libraryReady = false;
     let activeStyleDirectory = "";
     let pickerPending = false;
     let discoverySerial = 0;
+    let styleScanSerial = 0;
 
     function cleanManualPath(value) {
       const trimmed = value.trim();
@@ -1160,6 +1163,24 @@
 
     function isCustomerReferenceMode() {
       return styleSource.value === "customer-reference";
+    }
+
+    function makeMasterButton(image, role, label) {
+      const selected = masterIds[role] === image.id;
+      const clear = selected && role === "font";
+      const button = document.createElement("button");
+      button.id = `${role}-master-${image.id}`;
+      button.type = "button";
+      button.className = "secondary compact master-button";
+      button.textContent = clear ? `清除${label}` : `${selected ? "当前" : "设为"}${label}`;
+      button.setAttribute("aria-pressed", String(selected));
+      button.setAttribute("aria-label", clear ? `清除 ${image.name} 的${label}选择` : `将 ${image.name} 设为${label}`);
+      button.addEventListener("click", () => {
+        masterIds[role] = clear ? "" : image.id;
+        renderMaterialGrid("style");
+        document.getElementById(button.id)?.focus();
+      });
+      return button;
     }
 
     function renderMaterialGrid(kind) {
@@ -1202,20 +1223,7 @@
         });
         item.append(tile);
         if (kind === "style") {
-          const masterButton = document.createElement("button");
-          masterButton.type = "button";
-          masterButton.className = "secondary compact master-button";
-          masterButton.textContent = colorMasterId === image.id ? "当前色彩母版" : "设为色彩母版";
-          masterButton.setAttribute("aria-pressed", String(colorMasterId === image.id));
-          masterButton.setAttribute("aria-label", `将 ${image.name} 设为色彩母版`);
-          masterButton.addEventListener("click", () => {
-            colorMasterId = image.id;
-            renderMaterialGrid("style");
-            const refreshedItem = Array.from(grid.querySelectorAll(".material-item"))
-              .find((element) => element.querySelector("[data-material-id]")?.dataset.materialId === image.id);
-            refreshedItem?.querySelector(".master-button")?.focus();
-          });
-          item.append(masterButton);
+          item.append(makeMasterButton(image, "color", "色彩母版"), makeMasterButton(image, "font", "字体母版"));
         }
         grid.append(item);
       });
@@ -1225,10 +1233,14 @@
       styleSelectionSummary.textContent = selectedMaterialIds.style.length
         ? `已选择 ${selectedMaterialIds.style.length} 张仿照图；数字表示生成顺序。`
         : "尚未选择仿照图。";
-      const master = materials.style.find((image) => image.id === colorMasterId);
+      const master = materials.style.find((image) => image.id === masterIds.color);
       colorMasterSummary.textContent = master
         ? `色彩母版：${master.name}。它只提供全局调色方向，不会因此多生成一张。`
         : "请在风格图片下点击“设为色彩母版”；母版可以不在仿照清单中。";
+      const fontMaster = materials.style.find((image) => image.id === masterIds.font);
+      fontMasterSummary.textContent = fontMaster
+        ? `字体母版：${fontMaster.name}。整套标题、正文分别按其字形生成，字色随画面选择。`
+        : "字体母版选填。留空时，各图沿用自己的仿照图字体。";
     }
 
     async function loadTaskToken() {
@@ -1261,44 +1273,54 @@
     }
 
     function clearStyleSelection() {
+      styleScanSerial += 1;
       materials.style = [];
       selectedMaterialIds.style = [];
-      colorMasterId = "";
+      masterIds.color = "";
+      masterIds.font = "";
       activeStyleDirectory = "";
       renderMaterialGrid("style");
     }
 
-    async function loadStyleImages(preserveSelection) {
-      const selectedValue = styleChoice.value;
-      const requestedStyle = selectedValue.slice("style:".length);
-      const selectedNames = preserveSelection
-        ? selectedMaterialIds.style.map((id) => materials.style.find((image) => image.id === id)?.name).filter(Boolean)
-        : [];
-      const masterName = preserveSelection
-        ? materials.style.find((image) => image.id === colorMasterId)?.name : "";
-      const result = await libraryRequest("/library/images", { params: { style: requestedStyle } });
-      if (!isCustomerReferenceMode() || styleChoice.value !== selectedValue) {
-        return;
+    function applyStyleImages(result) {
+      const sameDirectory = activeStyleDirectory === result.directory;
+      const previousNames = new Map(materials.style.map((image) => [image.id, image.name]));
+      const freshIds = new Map(result.images.map((image) => [image.name, image.id]));
+      const restoredId = (id) => freshIds.get(previousNames.get(id)) || "";
+      const previousSelection = sameDirectory ? selectedMaterialIds.style : [];
+      selectedMaterialIds.style = previousSelection.map(restoredId).filter(Boolean);
+      const removed = previousSelection.length - selectedMaterialIds.style.length;
+      const missing = removed ? [`${removed} 张仿照图`] : [];
+      for (const [role, label] of [["color", "色彩母版"], ["font", "字体母版"]]) {
+        const previousId = sameDirectory ? masterIds[role] : "";
+        masterIds[role] = restoredId(previousId);
+        if (previousId && !masterIds[role]) {
+          missing.push(label);
+        }
       }
       materials.style = result.images;
       activeStyleDirectory = result.directory;
-      selectedMaterialIds.style = selectedNames
-        .map((name) => result.images.find((image) => image.name === name)?.id)
-        .filter(Boolean);
-      colorMasterId = result.images.find((image) => image.name === masterName)?.id || "";
       renderMaterialGrid("style");
-      const removed = selectedNames.length - selectedMaterialIds.style.length;
-      if (removed || (masterName && !colorMasterId)) {
-        setStatus(`刷新后有 ${removed} 张仿照图失效${masterName && !colorMasterId ? "，色彩母版也已失效" : ""}；请重新选择。`, "error");
+      if (missing.length) {
+        setStatus(`刷新后${missing.join("、")}已失效，请重新选择。`, "error");
       } else {
         setStatus(result.truncated ? "style 已读取；超过展示上限的图片未显示。" : "style 图片已读取。", "ok");
+      }
+    }
+
+    async function loadStyleImages() {
+      const serial = ++styleScanSerial;
+      const style = styleChoice.value.slice("style:".length);
+      const result = await libraryRequest("/library/images", { params: { style } });
+      if (serial === styleScanSerial) {
+        applyStyleImages(result);
       }
     }
 
     async function refreshStyles() {
       const previousChoice = styleChoice.value;
       const result = await libraryRequest("/library/styles");
-      if (!isCustomerReferenceMode()) {
+      if (!isCustomerReferenceMode() || previousChoice !== styleChoice.value) {
         return;
       }
       libraryReady = true;
@@ -1318,7 +1340,7 @@
       if (chosenStyle && !chosenStyle.disabledReason) {
         styleChoice.value = previousChoice;
         manualStyleField.hidden = true;
-        await loadStyleImages(true);
+        await loadStyleImages();
       } else {
         styleChoice.value = "manual";
         manualStyleField.hidden = false;
@@ -1407,6 +1429,7 @@
         setStatus("请先填写本地素材目录。", "error");
         return;
       }
+      const styleSerial = kind === "style" ? ++styleScanSerial : null;
       try {
         if (!taskToken) {
           await loadTaskToken();
@@ -1418,12 +1441,17 @@
         if (!response.ok) {
           throw new Error(result.error || "扫描失败");
         }
+        if (kind === "style") {
+          if (styleSerial !== styleScanSerial) {
+            return;
+          }
+          pathInput.value = directory;
+          applyStyleImages(result);
+          return;
+        }
         pathInput.value = directory;
         materials[kind] = result.images;
         selectedMaterialIds[kind] = [];
-        if (kind === "style") {
-          colorMasterId = "";
-        }
         renderMaterialGrid(kind);
         setStatus(result.truncated ? "素材已扫描；超过展示上限的图片未显示。" : "素材已扫描。", "ok");
       } catch (error) {
@@ -1468,7 +1496,8 @@
           styleMaterialsDirectory: activeStyleDirectory || cleanManualPath(styleMaterialsPath.value),
           productImageIds: [...selectedMaterialIds.product],
           styleReferenceIds: [...selectedMaterialIds.style],
-          colorMasterId,
+          colorMasterId: masterIds.color,
+          fontMasterId: masterIds.font,
           colorPriority: colorPriority.value
         } : null,
         meta: {
@@ -1600,7 +1629,7 @@
       manualStyleField.hidden = styleChoice.value !== "manual";
       if (styleChoice.value !== "manual") {
         try {
-          await loadStyleImages(false);
+          await loadStyleImages();
         } catch (error) {
           setStatus(`读取 style 失败：${error.message}`, "error");
         }
@@ -1706,16 +1735,12 @@
       window.setTimeout(() => {
         ratio.value = "1:1";
         materials.product = [];
-        materials.style = [];
         selectedMaterialIds.product = [];
-        selectedMaterialIds.style = [];
-        colorMasterId = "";
-        activeStyleDirectory = "";
+        clearStyleSelection();
         styleChoice.value = "manual";
         manualStyleField.hidden = false;
         colorPriority.value = "auto";
         renderMaterialGrid("product");
-        renderMaterialGrid("style");
         updateConditionalFields();
         setStatus("尚未保存。");
       }, 0);
